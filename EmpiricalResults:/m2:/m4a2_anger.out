@@ -1,0 +1,2605 @@
+Mplus VERSION 8.11
+MUTHEN & MUTHEN
+12/04/2024   1:39 PM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  Model 4a2 Leuven Anger
+  DATA:
+  FILE = "m4a_anger.dat";
+
+  VARIABLE:
+  NAMES = ID hour Y1 Y2 Y3;
+   MISSING=.;
+
+                           CLUSTER = ID;
+  USEVAR = Y1 Y2
+  Y3 ;
+
+  LAGGED = Y1(1) Y2(1)
+  Y3(1);
+
+  TINTERVAL = hour(1);
+  MISSING = ALL(999);
+  ANALYSIS:
+
+            TYPE = TWOLEVEL RANDOM;
+            ESTIMATOR = BAYES;
+            !ALGORITHM =MH;
+            FBITERATIONS = (25000);
+            THIN = 10;
+            CHAINS=2;
+            PROCESSORS = 40;
+  MODEL:
+  %WITHIN%
+   	 ! PER WAVE: SPECIFY AR(1) PROCESS WITH A RANDOM AUTOREGRESSION
+
+            phi1 | Y1 ON Y1&1;
+            phi2 | Y2 ON Y2&1;
+            phi3 | Y3 ON Y3&1;
+
+
+  	  Y1 Y2 WITH Y3@0;
+            Y1 WITH Y2@0;
+
+
+            %BETWEEN%
+
+            ! CREATE RANDOM INTERCEPTS FOR Y (MEANS), PHI & RV
+            Y BY Y1-Y3@1;
+            phi BY phi1-phi3@1;
+
+
+  	  ! ESTIMATING THE COVARIANCE OF RIs
+            Y WITH phi;
+
+
+            ! CREATE WITHIN-PERSON BURST SPECIFIC COMPONENTS FOR Y
+  	  ! SET THE RESIDUAL VARIANCES TO (ALMOST) ZERO (NO MEASUREMENT ERROR HERE)
+
+
+            !FOR Y
+            WCY1 BY Y1; Y1@0.001;
+            WCY2 BY Y2; Y2@0.001;
+            WCY3 BY Y3; Y3@0.001;
+
+            !SAME FOR Phi
+            WCPHI1 BY phi1; phi1@0.001;
+            WCPHI2 BY phi2; phi2@0.001;
+            WCPHI3 BY phi3; phi3@0.001;
+
+    	  ! SET COVARIANCE OF WC WITH RIs TO ZERO
+            WCY1 WITH Y@0;
+            WCY1 WITH phi@0;
+
+            WCPHI1 WITH phi@0;
+            WCPHI1 WITH Y@0;
+
+
+
+  	  ! ESTIMATING COVARIANCE OF THE WITHIN-COMPONENTS AT THE FIRST BURST
+            WCY1 WITH WCPHI1;
+
+  	  ! SPECIFY THE AUTOREGRESSIONS FOR THE WCs AND CONSTRAIN THESE TO BE INVARIANT OVER TIME
+
+            WCY2 WCY3 PON WCY1 WCY2 (a1);
+
+            WCPHI2 WCPHI3 PON WCPHI1 WCPHI2 (a2);
+
+
+          ! SPECIFY THE CROSS-LAGGED EFFECTS OF WCs AND CONSTRAIN THESE TO BE INVARIANT OVER
+            WCY2 WCY3 PON WCPHI1 WCPHI2 (b1);
+
+            WCPHI2 WCPHI3 PON WCY1 WCY2 (b2);
+
+          ! ESTIMATE COVARIANCES OF THE RESIDUALS OF THE WITHIN COMPONENTS AT 2ND AND 3RD WA
+          ! CONSTRAIN THESE TO BE INVARIANT OVER WAVES
+            WCY2 WITH WCPHI2 (rc1);
+    	  WCY3 WITH WCPHI3 (rc1);
+
+
+          ! CONSTRAIN RESIDUAL VARIANCES OF THE WCs TO BE INVARIANT OVER WAVES
+            WCY2 WCY3 (rv1);
+            WCPHI2 WCPHI3 (rv2);
+
+
+
+
+  OUTPUT:
+  TECH1 TECH8 STDYX FSCOMPARISON;
+  PLOT:
+  TYPE = PLOT3;
+            FACTOR =ALL;
+
+
+
+*** WARNING
+  Input line exceeded 90 characters. Some input may be truncated.
+          ! ESTIMATE COVARIANCES OF THE RESIDUALS OF THE WITHIN COMPONENTS AT 2ND AND 3RD WAV
+*** WARNING
+  One or more individual-level variables have no variation within a
+  cluster for the following clusters.
+
+     Variable   Cluster IDs with no within-cluster variation
+
+      Y2          130
+      Y3          130 50
+      Y2&1        130
+      Y3&1        130 50
+
+*** WARNING
+  Data set contains cases with missing on all variables.
+  These cases were not included in the analysis.
+  Number of cases with missing on all variables:  1
+   3 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+Model 4a2 Leuven Anger
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                       94929
+
+Number of dependent variables                                    3
+Number of independent variables                                  3
+Number of continuous latent variables                           11
+
+Observed dependent variables
+
+  Continuous
+   Y1          Y2          Y3
+
+Observed independent variables
+   Y1&1        Y2&1        Y3&1
+
+Continuous latent variables
+   Y           PHI         WCY1        WCY2        WCY3        WCPHI1
+   WCPHI2      WCPHI3      PHI1        PHI2        PHI3
+
+Variables with special functions
+
+  Cluster variable      ID
+
+  Within variables
+   Y1&1        Y2&1        Y3&1
+
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               2
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Fixed number of iterations                                 25000
+  K-th iteration used for thinning                              10
+Specifications for Bayes Factor Score Estimation
+  Number of imputed data sets                                   50
+  Iteration intervals for thinning                               1
+
+Input data file(s)
+  m4a_anger.dat
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+     Number of clusters                        178
+
+       Size (s)    Cluster ID with Size s
+
+        438        17
+        448        16
+        501        169
+        502        176
+        503        31 132
+        505        90
+        508        19 79
+        510        11 99 55
+        511        71
+        512        93
+        513        115
+        516        164 114 7 116 162 40
+        518        125
+        519        26 89 2 98 168
+        520        152 113
+        521        48 151 136 28 13
+        522        102 21 8 139 42 126 107
+        523        63 109 66 144
+        524        103 34 6 110 122 140 129
+        525        72 108
+        528        135
+        529        94 80
+        530        173 101 41 161 155 156
+        531        4 92 73 53
+        532        147 149 123 77 56 65 43 165 171 141 172 133
+        533        130 83 118 35 105 29 25 67 68 178 24 64 142 88 38 106
+        534        146 177 49 81 104 134 150 3 14 58 5 87 27
+        535        159 62 75 54
+        536        1 121 18 158 96
+        537        37
+        538        76 128
+        540        23 127 145 86
+        541        50 33
+        542        36 69 15 32
+        543        97 91
+        544        78 74 138 84
+        545        57 20 61 117 153 44 174 46 52 45 137 12
+        546        39 9 175 30 82
+        548        160 131 166
+        549        22 157 148
+        550        85
+        552        60 100
+        553        170
+        554        95 10 70
+        555        143 119 167
+        556        163
+        557        59 124
+        558        154
+        559        120
+        562        51
+        567        111
+        568        112
+        701        47
+
+
+
+SUMMARY OF MISSING DATA PATTERNS
+
+     Number of missing data patterns            11
+
+
+     MISSING DATA PATTERNS (x = not missing)
+
+           1  2  3  4  5  6  7  8  9 10 11
+ Y1        x  x  x
+ Y2        x              x     x
+ Y3        x                       x     x
+ Y1&1      x     x  x
+ Y2&1      x                 x  x
+ Y3&1      x                          x  x
+
+
+     MISSING DATA PATTERN FREQUENCIES
+
+    Pattern   Frequency     Pattern   Frequency     Pattern   Frequency
+          1           0           5       50323           9        3947
+          2        3832           6        3963          10        3769
+          3        7140           7        3963          11        7117
+          4        3832           8        7043
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              Y1            Y2            Y3
+              ________      ________      ________
+ Y1             0.116
+ Y2             0.000         0.116
+ Y3             0.000         0.000         0.117
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     Y1                    0.120       2.598       0.000   22.13%       0.000      0.050      0.070
+           10972.000       0.027       7.732       1.000    0.40%       0.090      0.170
+     Y2                    0.107       2.789       0.000   28.91%       0.000      0.040      0.060
+           11006.000       0.025       9.072       1.000    0.29%       0.080      0.150
+     Y3                    0.105       2.777       0.000   32.31%       0.000      0.030      0.060
+           11064.000       0.025       8.965       1.000    0.35%       0.080      0.150
+
+
+     WARNING: PROBLEMS OCCURRED IN SEVERAL ITERATIONS IN THE COMPUTATION OF THE STANDARDIZED ESTIMATES FOR SEVERAL
+     CLUSTERS. THIS IS MOST LIKELY DUE TO AR COEFFICIENTS GREATER THAN 1 OR PARAMETERS GIVING NON-STATIONARY MODELS.
+     SUCH POSTERIOR DRAWS ARE REMOVED. THE FOLLOWING CLUSTERS HAD SUCH PROBLEMS:
+          3
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              22
+
+Information Criteria
+
+          Deviance (DIC)                       -95891.334
+          Estimated Number of Parameters (pD)  252229.254
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within Level
+
+ Y1       WITH
+    Y3                 0.000       0.000      1.000       0.000       0.000
+    Y2                 0.000       0.000      1.000       0.000       0.000
+
+ Y2       WITH
+    Y3                 0.000       0.000      1.000       0.000       0.000
+
+ Residual Variances
+    Y1                 0.018       0.000      0.000       0.017       0.018      *
+    Y2                 0.017       0.000      0.000       0.016       0.017      *
+    Y3                 0.017       0.000      0.000       0.017       0.018      *
+
+Between Level
+
+ Y        BY
+    Y1                 1.000       0.000      0.000       1.000       1.000
+    Y2                 1.000       0.000      0.000       1.000       1.000
+    Y3                 1.000       0.000      0.000       1.000       1.000
+
+ WCY1     BY
+    Y1                 1.000       0.000      0.000       1.000       1.000
+
+ WCY2     BY
+    Y2                 1.000       0.000      0.000       1.000       1.000
+
+ WCY3     BY
+    Y3                 1.000       0.000      0.000       1.000       1.000
+
+ PHI      BY
+    PHI1               1.000       0.000      0.000       1.000       1.000
+    PHI2               1.000       0.000      0.000       1.000       1.000
+    PHI3               1.000       0.000      0.000       1.000       1.000
+
+ WCPHI1   BY
+    PHI1               1.000       0.000      0.000       1.000       1.000
+
+ WCPHI2   BY
+    PHI2               1.000       0.000      0.000       1.000       1.000
+
+ WCPHI3   BY
+    PHI3               1.000       0.000      0.000       1.000       1.000
+
+ WCY2       ON
+    WCY1               0.954       0.381      0.020       0.052       1.620      *
+    WCPHI1            -0.061       0.033      0.018      -0.136      -0.004      *
+
+ WCY3       ON
+    WCY2               0.954       0.381      0.020       0.052       1.620      *
+    WCPHI2            -0.061       0.033      0.018      -0.136      -0.004      *
+
+ WCPHI2     ON
+    WCPHI1            -0.255       0.211      0.095      -0.683       0.152
+    WCY1               0.846       2.592      0.326      -4.516       6.028
+
+ WCPHI3     ON
+    WCPHI2            -0.255       0.211      0.095      -0.683       0.152
+    WCY2               0.846       2.592      0.326      -4.516       6.028
+
+ Y        WITH
+    PHI                0.004       0.002      0.032       0.000       0.007
+    WCY1               0.000       0.000      1.000       0.000       0.000
+    WCPHI1             0.000       0.000      1.000       0.000       0.000
+
+ WCY1     WITH
+    PHI                0.000       0.000      1.000       0.000       0.000
+    WCPHI1             0.002       0.002      0.098      -0.001       0.007
+
+ WCPHI1   WITH
+    PHI                0.000       0.000      1.000       0.000       0.000
+
+ WCY2     WITH
+    WCPHI2             0.002       0.001      0.008       0.000       0.003      *
+
+ WCY3     WITH
+    WCPHI3             0.002       0.001      0.008       0.000       0.003      *
+
+ Intercepts
+    Y1                 0.119       0.006      0.000       0.107       0.131      *
+    Y2                 0.108       0.006      0.000       0.095       0.120      *
+    Y3                 0.104       0.006      0.000       0.092       0.116      *
+    PHI1               0.230       0.021      0.000       0.190       0.269      *
+    PHI2               0.175       0.021      0.000       0.133       0.215      *
+    PHI3               0.178       0.020      0.000       0.138       0.218      *
+
+ Variances
+    Y                  0.005       0.001      0.000       0.001       0.006      *
+    PHI                0.013       0.004      0.000       0.003       0.021      *
+    WCY1               0.001       0.001      0.000       0.000       0.004      *
+    WCPHI1             0.037       0.007      0.000       0.024       0.053      *
+
+ Residual Variances
+    Y1                 0.001       0.000      0.000       0.001       0.001
+    Y2                 0.001       0.000      0.000       0.001       0.001
+    Y3                 0.001       0.000      0.000       0.001       0.001
+    WCY2               0.000       0.000      0.000       0.000       0.001      *
+    WCY3               0.000       0.000      0.000       0.000       0.001      *
+    WCPHI2             0.024       0.005      0.000       0.014       0.036      *
+    WCPHI3             0.024       0.005      0.000       0.014       0.036      *
+    PHI1               0.001       0.000      0.000       0.001       0.001
+    PHI2               0.001       0.000      0.000       0.001       0.001
+    PHI3               0.001       0.000      0.000       0.001       0.001
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ PHI1 | Y1 ON
+    Y1&1               0.228       0.012      0.000       0.205       0.252      *
+
+ PHI2 | Y2 ON
+    Y2&1               0.175       0.015      0.000       0.145       0.202      *
+
+ PHI3 | Y3 ON
+    Y3&1               0.178       0.013      0.000       0.152       0.202      *
+
+ Y1       WITH
+    Y3                 0.000       0.000      1.000       0.000       0.000
+    Y2                 0.000       0.000      1.000       0.000       0.000
+
+ Y2       WITH
+    Y3                 0.000       0.000      1.000       0.000       0.000
+
+ Residual Variances
+    Y1                 0.900       0.005      0.000       0.889       0.910      *
+    Y2                 0.926       0.005      0.000       0.915       0.936      *
+    Y3                 0.931       0.005      0.000       0.922       0.940      *
+
+Between Level
+
+ Y        BY
+    Y1                 0.851       0.132      0.000       0.387       0.913      *
+    Y2                 0.848       0.135      0.000       0.380       0.912      *
+    Y3                 0.842       0.136      0.000       0.370       0.914      *
+
+ WCY1     BY
+    Y1                 0.346       0.185      0.000       0.117       0.829      *
+
+ WCY2     BY
+    Y2                 0.353       0.184      0.000       0.136       0.839      *
+
+ WCY3     BY
+    Y3                 0.371       0.190      0.000       0.125       0.845      *
+
+ PHI      BY
+    PHI1               0.502       0.096      0.000       0.255       0.640      *
+    PHI2               0.549       0.103      0.000       0.274       0.682      *
+    PHI3               0.557       0.105      0.000       0.281       0.697      *
+
+ WCPHI1   BY
+    PHI1               0.853       0.051      0.000       0.754       0.956      *
+
+ WCPHI2   BY
+    PHI2               0.821       0.060      0.000       0.715       0.950      *
+
+ WCPHI3   BY
+    PHI3               0.816       0.063      0.000       0.699       0.947      *
+
+ WCY2       ON
+    WCY1               0.885       0.320      0.020       0.074       1.357      *
+    WCPHI1            -0.384       0.294      0.018      -1.151      -0.030      *
+
+ WCY3       ON
+    WCY2               0.946       0.304      0.020       0.054       1.289      *
+    WCPHI2            -0.339       0.234      0.018      -0.907      -0.027      *
+
+ WCPHI2     ON
+    WCPHI1            -0.290       0.232      0.095      -0.739       0.172
+    WCY1               0.147       0.352      0.326      -0.516       0.866
+
+ WCPHI3     ON
+    WCPHI2            -0.259       0.226      0.095      -0.743       0.153
+    WCY2               0.165       0.374      0.326      -0.475       0.975
+
+ Y        WITH
+    PHI                0.568       0.250      0.032      -0.119       0.940
+    WCY1               0.000       0.000      1.000       0.000       0.000
+    WCPHI1             0.000       0.000      1.000       0.000       0.000
+
+ WCY1     WITH
+    PHI                0.000       0.000      1.000       0.000       0.000
+    WCPHI1             0.402       0.306      0.098      -0.244       0.937
+
+ WCPHI1   WITH
+    PHI                0.000       0.000      1.000       0.000       0.000
+
+ WCY2     WITH
+    WCPHI2             0.743       0.217      0.008       0.177       0.985      *
+
+ WCY3     WITH
+    WCPHI3             0.743       0.217      0.008       0.177       0.985      *
+
+ Intercepts
+    Y1                 1.490       0.112      0.000       1.269       1.711      *
+    Y2                 1.338       0.102      0.000       1.139       1.539      *
+    Y3                 1.285       0.104      0.000       1.081       1.491      *
+    PHI1               1.025       0.125      0.000       0.797       1.281      *
+    PHI2               0.847       0.119      0.000       0.619       1.084      *
+    PHI3               0.882       0.116      0.000       0.656       1.112      *
+
+ Variances
+    Y                  1.000       0.000      0.000       1.000       1.000
+    PHI                1.000       0.000      0.000       1.000       1.000
+    WCY1               1.000       0.000      0.000       1.000       1.000
+    WCPHI1             1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    Y1                 0.157       0.017      0.000       0.125       0.193      *
+    Y2                 0.154       0.015      0.000       0.126       0.186      *
+    Y3                 0.153       0.016      0.000       0.122       0.187      *
+    WCY2               0.301       0.254      0.000       0.035       0.923      *
+    WCY3               0.285       0.260      0.000       0.034       0.936      *
+    WCPHI2             0.866       0.134      0.000       0.501       0.994      *
+    WCPHI3             0.900       0.110      0.000       0.580       0.994      *
+    PHI1               0.020       0.003      0.000       0.015       0.026      *
+    PHI2               0.024       0.003      0.000       0.019       0.030      *
+    PHI3               0.024       0.003      0.000       0.019       0.031      *
+
+
+R-SQUARE
+
+Within-Level R-Square Averaged Across Clusters
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    Y1                 0.100       0.005      0.000       0.090       0.111
+    Y2                 0.074       0.005      0.000       0.064       0.085
+    Y3                 0.069       0.005      0.000       0.060       0.078
+
+Between Level
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    Y1                 0.843       0.017      0.000       0.807       0.875
+    Y2                 0.846       0.015      0.000       0.814       0.874
+    Y3                 0.847       0.016      0.000       0.813       0.878
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    WCY2               0.699       0.254      0.000       0.077       0.965
+    WCY3               0.715       0.260      0.000       0.064       0.966
+    WCPHI2             0.134       0.134      0.000       0.006       0.499
+    WCPHI3             0.100       0.110      0.000       0.006       0.419
+    PHI1               0.980       0.003      0.000       0.974       0.985
+    PHI2               0.976       0.003      0.000       0.970       0.981
+    PHI3               0.976       0.003      0.000       0.969       0.981
+
+
+BETWEEN-LEVEL FACTOR SCORE COMPARISONS
+
+ Results for Factor Y
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1        48          0.178           2        82          0.163           3       175          0.139
+     4       117          0.130           5         4          0.110           6       178          0.106
+     7        14          0.100           8        92          0.097           9       158          0.095
+    10       148          0.093          11        12          0.091          12       146          0.089
+    13        30          0.088          14         2          0.088          15       160          0.084
+    16       136          0.083          17       129          0.082          18        65          0.081
+    19        55          0.074          20        85          0.074          21        89          0.073
+    22         9          0.071          23       173          0.069          24       127          0.065
+    25        51          0.065          26       166          0.063          27       174          0.062
+    28        76          0.062          29       168          0.051          30        84          0.049
+    31        23          0.047          32        93          0.047          33       126          0.046
+    34        17          0.046          35       134          0.043          36        42          0.043
+    37       118          0.041          38        46          0.040          39        24          0.038
+    40       165          0.037          41        74          0.037          42        20          0.034
+    43       155          0.034          44         7          0.034          45        44          0.030
+    46       150          0.029          47        61          0.028          48       176          0.028
+    49       177          0.028          50        26          0.024          51         6          0.024
+    52       140          0.020          53       113          0.018          54        96          0.017
+    55        63          0.013          56        70          0.011          57        10          0.011
+    58       125          0.009          59        59          0.005          60       132          0.004
+    61        95          0.004          62        47          0.003          63       169          0.003
+    64       119          0.003          65        87          0.002          66        40          0.000
+    67       109          0.000          68       120          0.000          69        67          0.000
+    70       128         -0.001          71        86         -0.001          72        80         -0.004
+    73       170         -0.004          74       151         -0.005          75        91         -0.006
+    76        32         -0.006          77       116         -0.006          78        15         -0.006
+    79       104         -0.006          80       143         -0.007          81        28         -0.007
+    82       103         -0.009          83       108         -0.010          84       138         -0.011
+    85       121         -0.011          86        38         -0.011          87       153         -0.013
+    88         3         -0.013          89       122         -0.013          90        19         -0.013
+    91       124         -0.014          92       157         -0.014          93        43         -0.015
+    94        97         -0.016          95        18         -0.016          96       152         -0.016
+    97        11         -0.017          98       167         -0.017          99       144         -0.017
+   100        71         -0.018         101       133         -0.018         102       114         -0.019
+   103         5         -0.019         104        62         -0.020         105        98         -0.020
+   106       105         -0.021         107        37         -0.021         108       131         -0.021
+   109        25         -0.021         110       112         -0.022         111       135         -0.022
+   112       123         -0.023         113       107         -0.023         114        81         -0.024
+   115       102         -0.024         116        53         -0.025         117       147         -0.025
+   118       142         -0.025         119       154         -0.026         120       137         -0.026
+   121       106         -0.027         122        83         -0.027         123        31         -0.028
+   124        49         -0.028         125        13         -0.029         126        27         -0.029
+   127        41         -0.030         128        16         -0.031         129       100         -0.031
+   130       111         -0.033         131        99         -0.033         132        21         -0.034
+   133        56         -0.034         134        69         -0.035         135        78         -0.036
+   136        35         -0.037         137        36         -0.037         138        94         -0.037
+   139       149         -0.037         140        60         -0.038         141        45         -0.038
+   142        72         -0.038         143       162         -0.041         144       164         -0.042
+   145       145         -0.042         146        88         -0.042         147        54         -0.045
+   148       172         -0.045         149         1         -0.045         150        34         -0.048
+   151        75         -0.048         152        90         -0.048         153        29         -0.049
+   154       171         -0.051         155        68         -0.051         156        66         -0.053
+   157       110         -0.054         158       101         -0.054         159       115         -0.056
+   160        39         -0.056         161       139         -0.057         162        58         -0.057
+   163       161         -0.057         164        33         -0.059         165        79         -0.059
+   166        77         -0.059         167         8         -0.061         168       163         -0.062
+   169        73         -0.064         170        57         -0.065         171       156         -0.066
+   172        52         -0.066         173        22         -0.067         174        64         -0.067
+   175       141         -0.069         176       159         -0.070         177       130         -0.075
+   178        50         -0.076
+
+ Results for Factor PHI
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1       117          0.236           2         2          0.223           3       146          0.217
+     4        48          0.212           5        65          0.204           6       175          0.167
+     7         9          0.158           8        82          0.152           9        76          0.143
+    10        20          0.143          11        30          0.142          12        18          0.138
+    13        19          0.129          14         4          0.121          15       178          0.110
+    16       158          0.109          17        55          0.104          18       157          0.103
+    19       136          0.098          20         7          0.096          21         3          0.096
+    22       174          0.094          23        85          0.094          24       177          0.093
+    25       129          0.091          26        92          0.090          27       166          0.089
+    28       148          0.086          29        17          0.082          30        14          0.075
+    31       168          0.071          32       155          0.070          33        51          0.065
+    34        42          0.062          35        12          0.061          36       165          0.060
+    37        24          0.056          38        23          0.050          39       118          0.045
+    40       160          0.044          41       109          0.039          42       111          0.034
+    43       173          0.033          44       150          0.032          45       120          0.031
+    46        25          0.030          47        93          0.030          48       128          0.025
+    49        32          0.023          50        61          0.022          51        47          0.019
+    52        16          0.019          53       126          0.017          54        89          0.017
+    55         6          0.016          56       151          0.016          57       103          0.013
+    58       131          0.013          59         5          0.012          60       170          0.011
+    61        15          0.009          62        74          0.007          63        10          0.005
+    64        28          0.005          65       110          0.005          66        69          0.005
+    67       132          0.003          68        87          0.003          69       119          0.003
+    70       105          0.002          71       138          0.000          72       114         -0.001
+    73        84         -0.002          74        13         -0.003          75       135         -0.004
+    76        26         -0.005          77       153         -0.006          78        80         -0.007
+    79        72         -0.007          80       102         -0.007          81        63         -0.007
+    82        59         -0.007          83       125         -0.008          84        37         -0.009
+    85        38         -0.009          86        67         -0.012          87        91         -0.013
+    88       176         -0.013          89       149         -0.013          90        96         -0.014
+    91       167         -0.014          92        70         -0.014          93       140         -0.014
+    94        95         -0.014          95       104         -0.014          96       144         -0.016
+    97       143         -0.016          98       116         -0.018          99       142         -0.018
+   100       113         -0.019         101        29         -0.022         102       164         -0.024
+   103       145         -0.025         104        46         -0.026         105       162         -0.028
+   106        62         -0.030         107       124         -0.033         108        45         -0.034
+   109        86         -0.034         110        49         -0.035         111       161         -0.037
+   112       134         -0.038         113       137         -0.038         114        43         -0.039
+   115        99         -0.039         116        27         -0.039         117        40         -0.041
+   118        36         -0.041         119       123         -0.041         120       107         -0.042
+   121       133         -0.042         122       122         -0.043         123        44         -0.044
+   124        31         -0.045         125        11         -0.046         126       169         -0.047
+   127       147         -0.047         128       127         -0.048         129       108         -0.048
+   130        41         -0.049         131       100         -0.049         132        66         -0.050
+   133        35         -0.050         134       101         -0.051         135        81         -0.053
+   136        56         -0.054         137       106         -0.054         138        71         -0.055
+   139        97         -0.055         140        83         -0.055         141         1         -0.060
+   142        98         -0.060         143        33         -0.061         144        60         -0.063
+   145       172         -0.063         146        88         -0.066         147        68         -0.067
+   148        34         -0.068         149       141         -0.068         150       152         -0.069
+   151       112         -0.070         152        94         -0.072         153        78         -0.076
+   154       159         -0.076         155       121         -0.077         156       163         -0.079
+   157        79         -0.079         158       115         -0.082         159        75         -0.086
+   160        57         -0.086         161        58         -0.086         162        52         -0.086
+   163       139         -0.088         164        90         -0.091         165       156         -0.091
+   166        54         -0.091         167        53         -0.093         168        50         -0.093
+   169        77         -0.094         170        39         -0.094         171       130         -0.094
+   172        73         -0.097         173        22         -0.097         174         8         -0.098
+   175       171         -0.104         176        64         -0.112         177        21         -0.116
+   178       154         -0.120
+
+ Results for Factor WCY1
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1        48          0.078           2       127          0.055           3       158          0.045
+     4       117          0.044           5        92          0.041           6        82          0.041
+     7        89          0.039           8        12          0.037           9        14          0.034
+    10       136          0.033          11        74          0.032          12        46          0.032
+    13       175          0.031          14        61          0.031          15        84          0.031
+    16        85          0.031          17        55          0.030          18       173          0.030
+    19        93          0.030          20         9          0.029          21         4          0.028
+    22       160          0.023          23        30          0.022          24        17          0.020
+    25       134          0.020          26       168          0.019          27       150          0.018
+    28         6          0.018          29        23          0.018          30         2          0.017
+    31       165          0.017          32        76          0.016          33       129          0.016
+    34       126          0.015          35       148          0.015          36       174          0.015
+    37        42          0.013          38       118          0.012          39        44          0.012
+    40       121          0.012          41       140          0.012          42       132          0.012
+    43       166          0.011          44       112          0.011          45       169          0.011
+    46       170          0.010          47       178          0.010          48       119          0.010
+    49        24          0.009          50       151          0.009          51       176          0.008
+    52        65          0.007          53       152          0.007          54        62          0.007
+    55        96          0.007          56        21          0.006          57       154          0.006
+    58       142          0.006          59        59          0.005          60        91          0.005
+    61        26          0.005          62        63          0.005          63       120          0.005
+    64        51          0.004          65       146          0.004          66        86          0.004
+    67       107          0.004          68        38          0.003          69         3          0.003
+    70       128          0.003          71       109          0.003          72        83          0.002
+    73        10          0.002          74        88          0.002          75       137          0.001
+    76       167          0.001          77       125          0.000          78        20          0.000
+    79       108          0.000          80       124         -0.001          81        67         -0.001
+    82        78         -0.001          83       113         -0.001          84        43         -0.001
+    85        70         -0.001          86       138         -0.002          87       116         -0.002
+    88       122         -0.002          89        13         -0.002          90       147         -0.002
+    91        40         -0.002          92        94         -0.003          93         1         -0.003
+    94        68         -0.003          95        71         -0.003          96        80         -0.003
+    97        56         -0.004          98       143         -0.004          99        47         -0.004
+   100        11         -0.005         101        32         -0.005         102        87         -0.005
+   103        98         -0.005         104        73         -0.006         105       162         -0.007
+   106        97         -0.007         107       102         -0.007         108       177         -0.007
+   109       155         -0.007         110        72         -0.007         111        31         -0.007
+   112       133         -0.008         113       153         -0.008         114        35         -0.008
+   115         7         -0.009         116        54         -0.009         117       106         -0.009
+   118        99         -0.010         119       123         -0.010         120        81         -0.011
+   121       100         -0.011         122        18         -0.011         123       104         -0.011
+   124         5         -0.011         125        15         -0.012         126        64         -0.012
+   127        53         -0.012         128        49         -0.012         129       171         -0.012
+   130       103         -0.012         131        34         -0.014         132       149         -0.014
+   133        16         -0.014         134        25         -0.014         135       172         -0.014
+   136        41         -0.015         137       159         -0.015         138        75         -0.016
+   139        37         -0.017         140        90         -0.017         141        50         -0.017
+   142        79         -0.017         143       131         -0.017         144       161         -0.017
+   145        39         -0.017         146       144         -0.018         147       135         -0.018
+   148        36         -0.018         149       164         -0.018         150        69         -0.018
+   151       139         -0.018         152       105         -0.019         153        29         -0.019
+   154         8         -0.020         155       156         -0.020         156       157         -0.020
+   157        95         -0.020         158       114         -0.020         159        27         -0.020
+   160        22         -0.020         161       111         -0.021         162        28         -0.021
+   163        60         -0.021         164       130         -0.022         165        58         -0.022
+   166        57         -0.023         167       110         -0.024         168       145         -0.025
+   169        66         -0.025         170       141         -0.026         171        52         -0.027
+   172       101         -0.027         173       115         -0.028         174        33         -0.028
+   175        77         -0.029         176        19         -0.029         177       163         -0.030
+   178        45         -0.030
+
+ Results for Factor WCY2
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1       127          0.081           2        48          0.067           3       178          0.063
+     4        14          0.053           5        82          0.052           6       175          0.050
+     7         2          0.049           8         4          0.048           9       160          0.041
+    10       126          0.040          11       117          0.037          12        51          0.037
+    13        89          0.035          14       136          0.035          15         9          0.034
+    16       146          0.034          17        74          0.033          18       148          0.032
+    19        92          0.027          20        46          0.026          21        30          0.025
+    22       138          0.023          23       129          0.022          24       168          0.022
+    25        93          0.022          26        55          0.022          27       134          0.021
+    28       155          0.021          29        17          0.018          30       104          0.017
+    31       166          0.017          32        26          0.016          33       158          0.014
+    34       140          0.014          35        12          0.014          36        59          0.013
+    37       108          0.013          38       151          0.013          39        24          0.013
+    40       173          0.012          41       121          0.012          42        85          0.011
+    43         7          0.011          44       169          0.011          45        42          0.009
+    46       112          0.009          47        44          0.008          48        21          0.008
+    49       176          0.007          50        67          0.007          51        84          0.007
+    52       150          0.006          53        83          0.006          54       165          0.006
+    55        87          0.006          56       113          0.006          57       167          0.005
+    58        98          0.005          59       174          0.005          60        11          0.005
+    61        65          0.004          62        23          0.004          63       125          0.004
+    64        63          0.003          65       152          0.002          66       132          0.002
+    67        62          0.002          68        71          0.002          69       143          0.002
+    70        97          0.002          71       128          0.001          72       119          0.001
+    73        78          0.001          74       149          0.001          75        38          0.001
+    76        43          0.001          77        61          0.000          78        13          0.000
+    79        54         -0.001          80        15         -0.001          81       137         -0.001
+    82       171         -0.001          83       124         -0.002          84        32         -0.002
+    85        49         -0.002          86        86         -0.002          87       122         -0.002
+    88         6         -0.002          89       114         -0.002          90        76         -0.003
+    91       170         -0.004          92       107         -0.004          93        47         -0.005
+    94       144         -0.005          95        40         -0.006          96       118         -0.006
+    97        70         -0.006          98       116         -0.006          99        81         -0.006
+   100        69         -0.006         101       102         -0.006         102       154         -0.007
+   103        64         -0.007         104        53         -0.007         105        96         -0.008
+   106        80         -0.008         107        94         -0.008         108        35         -0.008
+   109        31         -0.009         110       120         -0.010         111       133         -0.010
+   112        25         -0.010         113        45         -0.010         114        95         -0.011
+   115       105         -0.012         116       164         -0.012         117        10         -0.012
+   118        29         -0.012         119        56         -0.012         120        34         -0.012
+   121        91         -0.012         122        37         -0.013         123       106         -0.013
+   124         1         -0.013         125        16         -0.013         126       157         -0.014
+   127        73         -0.014         128        99         -0.014         129        90         -0.014
+   130        27         -0.015         131       156         -0.015         132       100         -0.015
+   133       147         -0.015         134        60         -0.016         135       159         -0.016
+   136       162         -0.016         137        19         -0.016         138       123         -0.016
+   139       153         -0.017         140         5         -0.017         141       139         -0.017
+   142       101         -0.017         143        75         -0.018         144       177         -0.018
+   145       142         -0.019         146        36         -0.019         147        88         -0.019
+   148       145         -0.019         149        39         -0.020         150       163         -0.021
+   151       161         -0.021         152         8         -0.022         153        77         -0.022
+   154       131         -0.022         155       130         -0.022         156       115         -0.022
+   157       103         -0.022         158       172         -0.022         159        57         -0.022
+   160        22         -0.023         161       135         -0.023         162        68         -0.023
+   163       109         -0.023         164        79         -0.023         165        50         -0.024
+   166       111         -0.025         167        20         -0.026         168        66         -0.026
+   169        52         -0.026         170       141         -0.027         171        58         -0.027
+   172       110         -0.027         173        28         -0.027         174        41         -0.028
+   175        33         -0.029         176        72         -0.035         177         3         -0.041
+   178        18         -0.042
+
+ Results for Factor WCY3
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1        82          0.074           2        14          0.070           3        48          0.049
+     4       146          0.049           5       148          0.048           6       178          0.041
+     7       134          0.037           8       160          0.037           9        89          0.036
+    10       175          0.035          11         4          0.034          12        74          0.033
+    13       129          0.030          14       126          0.030          15        51          0.029
+    16       127          0.029          17        42          0.029          18       158          0.028
+    19       136          0.028          20         9          0.027          21         2          0.027
+    22       117          0.027          23        12          0.026          24       113          0.025
+    25        17          0.025          26        92          0.024          27        76          0.024
+    28        93          0.023          29        65          0.020          30        15          0.020
+    31       177          0.020          32        59          0.019          33       140          0.019
+    34        30          0.019          35        44          0.018          36       168          0.017
+    37       128          0.016          38        55          0.016          39         7          0.015
+    40        46          0.015          41       165          0.014          42        84          0.013
+    43       166          0.013          44       112          0.012          45         6          0.012
+    46       108          0.012          47        87          0.012          48       132          0.011
+    49       173          0.010          50       174          0.010          51       143          0.010
+    52        47          0.009          53        26          0.009          54       167          0.009
+    55       176          0.009          56       150          0.008          57        21          0.007
+    58       169          0.006          59        38          0.006          60        86          0.005
+    61       104          0.005          62        40          0.004          63       121          0.004
+    64        60          0.004          65        81          0.004          66        24          0.003
+    67        63          0.003          68        85          0.003          69        97          0.003
+    70        49          0.003          71        62          0.002          72         5          0.002
+    73       106          0.002          74        61          0.002          75       152          0.002
+    76        28          0.001          77        54          0.001          78        11          0.001
+    79        23          0.000          80        83          0.000          81        37          0.000
+    82       137          0.000          83       144          0.000          84        96         -0.001
+    85        53         -0.001          86        70         -0.001          87       154         -0.001
+    88        67         -0.001          89       120         -0.001          90       103         -0.002
+    91        16         -0.002          92       118         -0.002          93       124         -0.003
+    94        35         -0.003          95       171         -0.003          96        91         -0.003
+    97       119         -0.004          98       105         -0.004          99        80         -0.004
+   100       131         -0.004         101       122         -0.004         102       133         -0.004
+   103        98         -0.004         104        71         -0.004         105        78         -0.004
+   106       138         -0.006         107       116         -0.007         108       107         -0.007
+   109       141         -0.007         110        20         -0.007         111       110         -0.008
+   112       151         -0.008         113       114         -0.008         114       170         -0.009
+   115        43         -0.009         116       145         -0.010         117        64         -0.010
+   118        94         -0.010         119        10         -0.010         120        73         -0.011
+   121       161         -0.011         122        90         -0.012         123        32         -0.012
+   124        19         -0.012         125        99         -0.012         126        34         -0.013
+   127       109         -0.013         128        39         -0.013         129        57         -0.014
+   130       125         -0.014         131        66         -0.014         132        95         -0.015
+   133        69         -0.015         134         1         -0.015         135       164         -0.016
+   136        31         -0.016         137       147         -0.016         138        27         -0.017
+   139        50         -0.017         140        18         -0.017         141        13         -0.017
+   142       162         -0.017         143       123         -0.017         144       100         -0.018
+   145       159         -0.018         146        75         -0.018         147       156         -0.018
+   148       101         -0.018         149       130         -0.019         150         8         -0.019
+   151        68         -0.019         152        33         -0.019         153        41         -0.020
+   154       102         -0.020         155        88         -0.020         156        52         -0.020
+   157        22         -0.021         158        79         -0.021         159        25         -0.021
+   160       115         -0.022         161        36         -0.022         162        56         -0.022
+   163       163         -0.022         164       172         -0.022         165        77         -0.022
+   166       149         -0.023         167       153         -0.023         168        72         -0.023
+   169       155         -0.024         170       139         -0.024         171        58         -0.024
+   172        29         -0.028         173        45         -0.029         174       142         -0.029
+   175         3         -0.030         176       135         -0.032         177       111         -0.037
+   178       157         -0.046
+
+ Results for Factor WCPHI1
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1         3          0.589           2        18          0.461           3        20          0.357
+     4        72          0.281           5        85          0.277           6       117          0.271
+     7       109          0.263           8        48          0.256           9       157          0.250
+    10       150          0.233          11         6          0.228          12        12          0.227
+    13       158          0.209          14        30          0.201          15        23          0.198
+    16       120          0.186          17        61          0.175          18        55          0.174
+    19        65          0.173          20        88          0.170          21       111          0.167
+    22        76          0.161          23       118          0.156          24       142          0.147
+    25       173          0.144          26       162          0.144          27        68          0.141
+    28        84          0.138          29        96          0.136          30       170          0.123
+    31        10          0.123          32       135          0.118          33        91          0.118
+    34         9          0.115          35        17          0.110          36        24          0.108
+    37        86          0.093          38         5          0.091          39        41          0.089
+    40       129          0.087          41       174          0.083          42        36          0.073
+    43        73          0.072          44        99          0.068          45       154          0.067
+    46        25          0.064          47        56          0.058          48       148          0.058
+    49        92          0.057          50       176          0.055          51        93          0.051
+    52        69          0.049          53       103          0.042          54       107          0.041
+    55        58          0.038          56       123          0.037          57        19          0.036
+    58        75          0.036          59       167          0.035          60       147          0.032
+    61        42          0.031          62        50          0.029          63       169          0.026
+    64       110          0.026          65       124          0.023          66       168          0.021
+    67       159          0.018          68        66          0.018          69       172          0.014
+    70        28          0.012          71         4          0.009          72       151          0.008
+    73       152          0.008          74        79          0.007          75        38          0.006
+    76        43          0.003          77       161          0.002          78       153          0.000
+    79       128         -0.001          80       177         -0.004          81        13         -0.005
+    82       166         -0.005          83       116         -0.007          84        90         -0.011
+    85       137         -0.013          86       100         -0.014          87        44         -0.015
+    88       143         -0.016          89       165         -0.018          90       132         -0.019
+    91        40         -0.022          92         1         -0.023          93        32         -0.023
+    94       131         -0.025          95        22         -0.025          96         8         -0.026
+    97        78         -0.028          98        82         -0.030          99       102         -0.031
+   100       119         -0.032         101       133         -0.034         102       139         -0.034
+   103       164         -0.035         104       130         -0.036         105        60         -0.041
+   106        46         -0.042         107       113         -0.042         108        33         -0.044
+   109       115         -0.044         110        31         -0.044         111        16         -0.044
+   112        97         -0.045         113        29         -0.046         114        27         -0.046
+   115       140         -0.046         116        21         -0.051         117       141         -0.055
+   118        77         -0.057         119        94         -0.057         120       125         -0.062
+   121        39         -0.064         122        35         -0.065         123        67         -0.066
+   124        59         -0.067         125       101         -0.067         126        89         -0.067
+   127        63         -0.073         128       105         -0.073         129        11         -0.075
+   130        37         -0.079         131       144         -0.083         132       106         -0.084
+   133        80         -0.085         134        81         -0.085         135        70         -0.085
+   136       112         -0.086         137        57         -0.089         138        34         -0.091
+   139       163         -0.094         140        87         -0.094         141       145         -0.095
+   142        53         -0.095         143        52         -0.095         144        95         -0.096
+   145        98         -0.096         146        71         -0.097         147       122         -0.099
+   148       156         -0.107         149       114         -0.108         150        62         -0.109
+   151       149         -0.116         152       146         -0.117         153       134         -0.119
+   154        26         -0.120         155        15         -0.120         156       171         -0.120
+   157        45         -0.123         158        64         -0.125         159       108         -0.130
+   160        54         -0.130         161       121         -0.141         162       136         -0.142
+   163        83         -0.145         164       126         -0.152         165         7         -0.153
+   166       104         -0.154         167        47         -0.170         168        14         -0.173
+   169       160         -0.178         170         2         -0.185         171        74         -0.187
+   172        49         -0.198         173        51         -0.234         174       138         -0.234
+   175       155         -0.271         176       178         -0.302         177       175         -0.412
+   178       127         -0.546
+
+ Results for Factor WCPHI2
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1         2          0.452           2       155          0.442           3       178          0.396
+     4       157          0.392           5       138          0.296           6       127          0.266
+     7       149          0.252           8       175          0.240           9       146          0.201
+    10        51          0.198          11        29          0.176          12         4          0.174
+    13       104          0.166          14         9          0.166          15        19          0.160
+    16       111          0.156          17        45          0.140          18       114          0.139
+    19        13          0.129          20        25          0.129          21       117          0.126
+    22        69          0.125          23       164          0.115          24        32          0.104
+    25        30          0.104          26         7          0.098          27       151          0.096
+    28       126          0.096          29       156          0.081          30       129          0.071
+    31       171          0.070          32       136          0.067          33        98          0.067
+    34        24          0.064          35        65          0.059          36       160          0.059
+    37       168          0.056          38        67          0.056          39       125          0.055
+    40        71          0.051          41       166          0.046          42       135          0.041
+    43        43          0.040          44       101          0.039          45        49          0.038
+    46        48          0.037          47       105          0.037          48       139          0.036
+    49        95          0.029          50       102          0.027          51        55          0.025
+    52        17          0.024          53        85          0.021          54       165          0.018
+    55        27          0.015          56        11          0.014          57       167          0.010
+    58        26          0.008          59       159          0.007          60        16          0.007
+    61        87          0.004          62       162          0.002          63       148          0.002
+    64       153          0.001          65       132          0.001          66        77          0.001
+    67        97         -0.001          68        36         -0.003          69       115         -0.004
+    70       122         -0.004          71       144         -0.006          72        59         -0.009
+    73        83         -0.013          74        64         -0.015          75        82         -0.015
+    76        56         -0.015          77        34         -0.016          78       172         -0.019
+    79       108         -0.020          80        99         -0.020          81       170         -0.020
+    82       145         -0.021          83       130         -0.024          84        31         -0.026
+    85       143         -0.026          86        73         -0.028          87       123         -0.029
+    88        38         -0.032          89         8         -0.032          90        62         -0.032
+    91        78         -0.034          92        74         -0.035          93        58         -0.035
+    94        80         -0.037          95        20         -0.038          96        63         -0.039
+    97       121         -0.043          98       107         -0.043          99       124         -0.048
+   100       110         -0.050         101       163         -0.050         102        22         -0.053
+   103        79         -0.053         104        33         -0.054         105       169         -0.056
+   106       147         -0.056         107       141         -0.056         108        81         -0.057
+   109        54         -0.057         110        53         -0.057         111       119         -0.057
+   112        10         -0.058         113        23         -0.059         114        94         -0.059
+   115        35         -0.061         116        52         -0.062         117       176         -0.062
+   118       137         -0.063         119       100         -0.063         120        57         -0.064
+   121        66         -0.065         122        46         -0.065         123       152         -0.066
+   124         1         -0.066         125        86         -0.067         126       133         -0.067
+   127        15         -0.068         128       112         -0.069         129       116         -0.069
+   130       113         -0.070         131       106         -0.072         132        47         -0.073
+   133        40         -0.074         134        39         -0.076         135       131         -0.076
+   136        90         -0.078         137       161         -0.079         138       120         -0.079
+   139       118         -0.080         140       173         -0.084         141        50         -0.084
+   142       150         -0.084         143       128         -0.085         144        60         -0.086
+   145       103         -0.087         146       174         -0.087         147        37         -0.087
+   148        93         -0.088         149        92         -0.095         150       142         -0.099
+   151        28         -0.099         152        14         -0.100         153        21         -0.104
+   154        91         -0.105         155        72         -0.109         156        18         -0.114
+   157        70         -0.116         158        75         -0.117         159       140         -0.119
+   160         5         -0.124         161         6         -0.129         162        76         -0.129
+   163        42         -0.142         164        88         -0.142         165       109         -0.146
+   166        68         -0.147         167        89         -0.147         168        61         -0.148
+   169        41         -0.149         170        44         -0.157         171         3         -0.158
+   172       177         -0.161         173       134         -0.174         174        96         -0.213
+   175        84         -0.223         176        12         -0.227         177       154         -0.247
+   178       158         -0.272
+
+ Results for Factor WCPHI3
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1       177          0.404           2        76          0.360           3       146          0.337
+     4        18          0.277           5       131          0.252           6        42          0.227
+     7       110          0.209           8        14          0.206           9        47          0.202
+    10        37          0.200          11        19          0.197          12         5          0.189
+    13        15          0.186          14       158          0.186          15        20          0.182
+    16       103          0.181          17       141          0.180          18         7          0.179
+    19         2          0.164          20       175          0.161          21        65          0.155
+    22       128          0.150          23       105          0.134          24       165          0.123
+    25       145          0.122          26        60          0.121          27        28          0.121
+    28        16          0.114          29        39          0.109          30         9          0.104
+    31       106          0.102          32       161          0.100          33        62          0.096
+    34        66          0.090          35        33          0.087          36       134          0.083
+    37       132          0.069          38        74          0.068          39        17          0.067
+    40        49          0.062          41       119          0.058          42       144          0.058
+    43        92          0.055          44       133          0.050          45       113          0.049
+    46       136          0.045          47       117          0.041          48        91          0.040
+    49        70          0.039          50       124          0.034          51        80          0.033
+    52        82          0.029          53       174          0.028          54        41          0.028
+    55        40          0.027          56       109          0.026          57         6          0.026
+    58       118          0.025          59       143          0.024          60        89          0.024
+    61        81          0.022          62        57          0.019          63        64          0.015
+    64         3          0.014          65        54          0.014          66       100          0.013
+    67        83          0.012          68        97          0.012          69        99          0.011
+    70        87          0.011          71        44          0.006          72       137          0.006
+    73        53          0.005          74       101          0.003          75       172          0.002
+    76        61          0.000          77        32          0.000          78        38         -0.001
+    79       162         -0.001          80        22         -0.002          81       123         -0.002
+    82        50         -0.005          83       122         -0.005          84        51         -0.007
+    85        10         -0.007          86       126         -0.008          87        93         -0.009
+    88        35         -0.010          89       115         -0.011          90        11         -0.011
+    91        94         -0.012          92        72         -0.012          93       120         -0.012
+    94       153         -0.015          95        75         -0.017          96        12         -0.017
+    97       166         -0.017          98       108         -0.020          99        69         -0.021
+   100       121         -0.023         101        90         -0.024         102        71         -0.024
+   103        59         -0.025         104       116         -0.025         105        58         -0.026
+   106       112         -0.026         107         8         -0.027         108        84         -0.029
+   109       150         -0.030         110       147         -0.031         111         1         -0.032
+   112        79         -0.034         113        73         -0.034         114        27         -0.034
+   115       130         -0.035         116        34         -0.035         117       173         -0.035
+   118       159         -0.036         119       156         -0.039         120       171         -0.040
+   121       167         -0.040         122       129         -0.041         123       154         -0.043
+   124        30         -0.045         125        46         -0.045         126       140         -0.045
+   127        78         -0.045         128        63         -0.046         129        26         -0.046
+   130       163         -0.047         131        36         -0.047         132       148         -0.051
+   133        98         -0.057         134        52         -0.057         135        25         -0.057
+   136        68         -0.060         137       107         -0.062         138       168         -0.063
+   139       114         -0.067         140        45         -0.069         141        88         -0.071
+   142       164         -0.072         143        55         -0.073         144        86         -0.073
+   145        13         -0.073         146        24         -0.073         147       102         -0.076
+   148       104         -0.077         149        96         -0.080         150        43         -0.080
+   151        77         -0.082         152        23         -0.082         153        67         -0.082
+   154       142         -0.083         155       139         -0.085         156       151         -0.085
+   157        31         -0.092         158       138         -0.092         159        85         -0.093
+   160        29         -0.095         161        21         -0.096         162       169         -0.097
+   163        95         -0.097         164       170         -0.098         165       149         -0.098
+   166       135         -0.099         167        56         -0.103         168       176         -0.105
+   169       160         -0.114         170       111         -0.117         171       152         -0.127
+   172       125         -0.131         173        48         -0.156         174         4         -0.177
+   175       155         -0.180         176       178         -0.194         177       157         -0.208
+   178       127         -0.257
+
+ Results for Factor PHI1
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1         3          0.935           2        18          0.837           3       117          0.754
+     4        20          0.741           5        48          0.713           6        85          0.614
+     7        65          0.608           8       157          0.599           9        30          0.581
+    10       158          0.555          11       109          0.540          12        76          0.538
+    13        12          0.528          14        72          0.511          15        55          0.510
+    16         9          0.503          17       150          0.503          18        23          0.499
+    19         6          0.478          20       120          0.459          21       111          0.448
+    22       118          0.437          23        17          0.432          24        61          0.427
+    25       129          0.417          26       174          0.414          27       173          0.413
+    28        19          0.408          29        24          0.407          30       148          0.387
+    31         4          0.372          32       170          0.372          33        92          0.371
+    34        10          0.367          35        84          0.366          36       142          0.366
+    37        82          0.359          38        96          0.357          39       162          0.353
+    40       135          0.346          41         5          0.345          42        88          0.343
+    43        91          0.337          44        25          0.331          45        42          0.328
+    46       146          0.326          47       168          0.324          48       177          0.323
+    49       166          0.322          50        93          0.316          51        68          0.313
+    52        86          0.296          53        69          0.289          54       103          0.287
+    55       176          0.281          56       165          0.280          57        41          0.280
+    58         2          0.268          59        36          0.264          60       151          0.261
+    61        99          0.260          62       128          0.258          63       167          0.258
+    64       110          0.253          65        28          0.245          66        38          0.239
+    67        32          0.237          68        56          0.237          69       107          0.234
+    70       153          0.233          71       124          0.230          72       147          0.226
+    73       123          0.225          74       131          0.225          75        13          0.220
+    76       132          0.218          77       169          0.215          78        16          0.206
+    79       119          0.205          80       116          0.204          81        73          0.204
+    82       143          0.203          83       102          0.203          84        66          0.202
+    85        43          0.197          86       161          0.194          87        58          0.193
+    88       136          0.187          89        75          0.185          90       154          0.182
+    91       137          0.180          92       159          0.177          93       152          0.177
+    94        44          0.176          95       172          0.176          96         7          0.175
+    97       164          0.174          98        89          0.174          99        40          0.173
+   100        50          0.171         101        46          0.170         102       113          0.170
+   103        59          0.168         104        79          0.168         105       140          0.167
+   106        29          0.166         107       100          0.165         108       125          0.163
+   109        63          0.162         110       133          0.155         111        27          0.155
+   112       105          0.154         113        67          0.153         114        87          0.145
+   115        80          0.143         116         1          0.141         117        37          0.139
+   118        31          0.139         119        60          0.135         120        90          0.134
+   121       144          0.133         122        33          0.132         123       114          0.130
+   124        14          0.130         125        70          0.129         126        97          0.128
+   127        78          0.127         128        15          0.125         129        95          0.124
+   130        35          0.118         131       101          0.114         132         8          0.113
+   133        22          0.112         134       145          0.112         135       115          0.110
+   136       139          0.108         137        11          0.104         138       130          0.104
+   139       141          0.104         140        94          0.103         141        26          0.101
+   142       149          0.099         143       106          0.093         144       160          0.091
+   145        81          0.091         146       122          0.089         147       126          0.088
+   148        77          0.084         149        62          0.081         150       112          0.079
+   151        47          0.078         152        71          0.077         153       134          0.075
+   154        98          0.073         155        39          0.072         156        45          0.071
+   157        21          0.066         158       104          0.064         159        51          0.064
+   160        34          0.060         161        57          0.057         162        52          0.056
+   163       163          0.056         164        53          0.052         165       108          0.051
+   166        74          0.046         167       178          0.045         168       156          0.042
+   169        83          0.036         170       155          0.032         171       121          0.012
+   172        54          0.009         173       171          0.006         174        49         -0.006
+   175       138         -0.012         176        64         -0.012         177       175         -0.033
+   178       127         -0.377
+
+ Results for Factor PHI2
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1         2          0.892           2       155          0.735           3       178          0.724
+     4       157          0.706           5       146          0.631           6       175          0.621
+     7       117          0.561           8         9          0.531           9       138          0.501
+    10        19          0.495          11         4          0.492          12        65          0.459
+    13        51          0.453          14        48          0.450          15       149          0.450
+    16        30          0.449          17       127          0.419          18       111          0.392
+    19         7          0.391          20       136          0.368          21       104          0.360
+    22        29          0.359          23        25          0.354          24       129          0.353
+    25       114          0.339          26        69          0.335          27       166          0.334
+    28        82          0.332          29       168          0.332          30        55          0.329
+    31        32          0.324          32        13          0.323          33        24          0.320
+    34        85          0.313          35       151          0.311          36       126          0.308
+    37        17          0.308          38        20          0.306          39        45          0.303
+    40       160          0.301          41       164          0.298          42       148          0.283
+    43       165          0.278          44        67          0.246          45       125          0.241
+    46       135          0.238          47       105          0.235          48        16          0.230
+    49       102          0.224          50        18          0.220          51        76          0.214
+    52        49          0.209          53       174          0.209          54        95          0.208
+    55        98          0.206          56       132          0.204          57        87          0.202
+    58        26          0.201          59       156          0.197          60       170          0.192
+    61       153          0.192          62        71          0.190          63        92          0.190
+    64       167          0.188          65        43          0.187          66        23          0.179
+    67       101          0.178          68       162          0.176          69        27          0.175
+    70        59          0.173          71        74          0.171          72        63          0.164
+    73       144          0.164          74        11          0.164          75       118          0.162
+    76        14          0.160          77       171          0.159          78       110          0.156
+    79        36          0.155          80        80          0.153          81       120          0.152
+    82       143          0.152          83       139          0.151          84       122          0.151
+    85       150          0.150          86       145          0.148          87        47          0.147
+    88        38          0.147          89        10          0.144          90       173          0.144
+    91        15          0.143          92         3          0.141          93        97          0.140
+    94       128          0.138          95        31          0.137          96       119          0.137
+    97       108          0.137          98       131          0.137          99        62          0.135
+   100        99          0.134         101        93          0.130         102        34          0.128
+   103       159          0.126         104       123          0.125         105        83          0.123
+   106       177          0.123         107       176          0.120         108        56          0.118
+   109       103          0.117         110       124          0.117         111       115          0.116
+   112       172          0.116         113       107          0.116         114       113          0.115
+   115        42          0.114         116       116          0.109         117        77          0.104
+   118        28          0.101         119        37          0.100         120        46          0.099
+   121       147          0.094         122       169          0.093         123        35          0.092
+   124       137          0.091         125        86          0.091         126        78          0.088
+   127        33          0.087         128         5          0.086         129       100          0.083
+   130        81          0.083         131       142          0.083         132       121          0.082
+   133        40          0.081         134       109          0.080         135       133          0.080
+   136        66          0.079         137         6          0.079         138       130          0.078
+   139       106          0.076         140        58          0.075         141        73          0.075
+   142        72          0.075         143         1          0.074         144       161          0.073
+   145       163          0.072         146        91          0.071         147        89          0.068
+   148        79          0.068         149        64          0.066         150       112          0.065
+   151         8          0.064         152       141          0.064         153        70          0.062
+   154        94          0.061         155        61          0.061         156       140          0.058
+   157       152          0.056         158        52          0.052         159        54          0.051
+   160        57          0.046         161        60          0.045         162        22          0.041
+   163        53          0.037         164        39          0.032         165        12          0.029
+   166       158          0.027         167        90          0.023         168        50          0.020
+   169        75         -0.007         170        44         -0.007         171        41         -0.008
+   172        68         -0.010         173        88         -0.017         174        84         -0.022
+   175       134         -0.027         176        96         -0.028         177        21         -0.032
+   178       154         -0.181
+
+ Results for Factor PHI3
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1       146          0.732           2        76          0.680           3       177          0.678
+     4        18          0.589           5         2          0.566           6        65          0.531
+     7        19          0.497           8        20          0.495           9       175          0.495
+    10       158          0.468          11        42          0.458          12        14          0.451
+    13         7          0.450          14       117          0.445          15       131          0.441
+    16         9          0.431          17        47          0.403          18       110          0.393
+    19         5          0.368          20       103          0.366          21        15          0.363
+    22        37          0.363          23       165          0.357          24        82          0.346
+    25       128          0.340          26        17          0.317          27       136          0.311
+    28       105          0.309          29        92          0.307          30        16          0.305
+    31        28          0.300          32       174          0.293          33       141          0.288
+    34         3          0.274          35       145          0.269          36        30          0.264
+    37        74          0.246          38       166          0.242          39       118          0.241
+    40        62          0.240          41       161          0.239          42       132          0.239
+    43       109          0.233          44       119          0.228          45        60          0.223
+    46        51          0.221          47        48          0.218          48        89          0.217
+    49       144          0.215          50        66          0.212          51       106          0.212
+    52       134          0.210          53       129          0.206          54        49          0.203
+    55        12          0.200          56        33          0.200          57        55          0.199
+    58        70          0.199          59         6          0.198          60       113          0.195
+    61        91          0.193          62        80          0.193          63       148          0.192
+    64        87          0.184          65        39          0.184          66        93          0.184
+    67       120          0.184          68        32          0.181          69        61          0.180
+    70       168          0.177          71       133          0.173          72       126          0.173
+    73        10          0.169          74       143          0.169          75       150          0.167
+    76       124          0.165          77       173          0.162          78        85          0.158
+    79        38          0.157          80        40          0.153          81        41          0.153
+    82        69          0.152          83        24          0.151          84        72          0.149
+    85       162          0.142          86        25          0.141          87       153          0.141
+    88        99          0.139          89       137          0.134          90        81          0.133
+    91        23          0.132          92        59          0.131          93        84          0.130
+    94        44          0.129          95       116          0.125          96       101          0.125
+    97       100          0.124          98        83          0.124          99        97          0.122
+   100        26          0.121         101       123          0.120         102       122          0.119
+   103        63          0.113         104       167          0.111         105       172          0.109
+   106        11          0.108         107        27          0.106         108        57          0.104
+   109        35          0.104         110       108          0.102         111         4          0.099
+   112       140          0.097         113       151          0.096         114       160          0.094
+   115       114          0.092         116        13          0.091         117        54          0.090
+   118        46          0.090         119       147          0.090         120        71          0.089
+   121       115          0.083         122       102          0.082         123       111          0.081
+   124        53          0.080         125        94          0.078         126       138          0.078
+   127       178          0.078         128       104          0.076         129        67          0.075
+   130        96          0.074         131       170          0.073         132        36          0.073
+   133         1          0.072         134        64          0.070         135       142          0.070
+   136       121          0.067         137       107          0.065         138       164          0.064
+   139       135          0.064         140        50          0.063         141       112          0.063
+   142        34          0.062         143        75          0.062         144        45          0.061
+   145        22          0.058         146        58          0.057         147       159          0.056
+   148        86          0.055         149        79          0.054         150       157          0.053
+   151        95          0.052         152       149          0.051         153        29          0.051
+   154       155          0.050         155        90          0.050         156       163          0.048
+   157        43          0.048         158        68          0.046         159         8          0.046
+   160       176          0.046         161       130          0.044         162        98          0.041
+   163        73          0.037         164        78          0.036         165       156          0.032
+   166        88          0.031         167       125          0.027         168        31          0.026
+   169       171          0.024         170        52          0.022         171       169          0.012
+   172       154          0.006         173        56          0.003         174       139         -0.004
+   175        77         -0.012         176       152         -0.039         177        21         -0.050
+   178       127         -0.137
+
+ Results for Y1 (referred to as plausible label B_Y1)
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1        48          0.405           2       175          0.360           3       127          0.314
+     4        92          0.304           5        82          0.301           6       117          0.296
+     7       158          0.284           8       136          0.266           9       173          0.253
+    10        85          0.249          11        12          0.247          12        89          0.247
+    13        84          0.241          14        55          0.239          15         2          0.234
+    16        61          0.230          17         4          0.225          18         9          0.224
+    19       165          0.221          20       160          0.218          21        74          0.218
+    22        30          0.218          23        14          0.215          24        46          0.211
+    25       129          0.208          26        65          0.207          27       174          0.204
+    28        93          0.201          29        76          0.198          30       118          0.196
+    31       166          0.195          32        23          0.181          33        51          0.177
+    34       178          0.176          35       168          0.175          36        20          0.174
+    37       155          0.173          38       148          0.173          39        42          0.172
+    40        17          0.170          41       132          0.165          42       134          0.165
+    43       146          0.165          44       142          0.162          45         6          0.161
+    46        44          0.159          47       150          0.158          48        26          0.152
+    49        10          0.151          50       121          0.150          51       176          0.148
+    52       140          0.147          53       119          0.145          54       126          0.144
+    55       177          0.141          56       125          0.140          57       170          0.139
+    58        63          0.139          59        24          0.139          60        96          0.139
+    61        91          0.138          62        70          0.138          63       109          0.136
+    64        40          0.130          65        47          0.128          66        80          0.126
+    67         3          0.126          68       169          0.125          69       151          0.125
+    70        86          0.121          71         7          0.121          72       153          0.121
+    73       120          0.120          74       128          0.119          75        62          0.117
+    76       116          0.116          77       138          0.116          78        32          0.116
+    79        67          0.113          80        38          0.110          81        59          0.110
+    82        43          0.108          83       103          0.107          84        71          0.106
+    85        83          0.106          86       112          0.106          87       107          0.105
+    88       147          0.104          89        31          0.103          90       124          0.102
+    91        13          0.101          92       113          0.101          93       152          0.101
+    94       122          0.100          95        11          0.098          96        97          0.097
+    97        95          0.097          98       137          0.097          99        88          0.097
+   100       102          0.096         101       143          0.096         102        56          0.090
+   103         1          0.090         104       133          0.088         105        87          0.087
+   106        49          0.086         107        98          0.086         108       106          0.085
+   109       167          0.085         110       123          0.085         111        28          0.084
+   112        94          0.080         113        72          0.080         114        18          0.080
+   115       157          0.080         116       108          0.079         117       154          0.079
+   118       131          0.079         119        15          0.079         120       172          0.078
+   121        21          0.076         122       135          0.076         123       104          0.076
+   124        41          0.075         125       149          0.074         126       100          0.074
+   127        37          0.073         128        53          0.071         129        99          0.071
+   130         5          0.070         131        78          0.069         132       105          0.068
+   133        54          0.068         134        25          0.067         135       162          0.067
+   136       114          0.067         137       164          0.065         138        81          0.063
+   139        68          0.063         140        16          0.061         141       111          0.058
+   142        27          0.058         143        73          0.057         144       144          0.055
+   145        90          0.053         146        34          0.053         147        64          0.052
+   148        36          0.051         149        29          0.051         150        35          0.050
+   151       145          0.049         152        19          0.045         153        79          0.044
+   154        69          0.043         155        33          0.040         156       171          0.037
+   157       139          0.036         158        66          0.035         159        58          0.035
+   160        39          0.034         161         8          0.033         162       156          0.032
+   163        75          0.031         164       159          0.029         165       161          0.028
+   166       110          0.027         167        45          0.027         168        50          0.026
+   169        57          0.024         170       101          0.024         171        60          0.021
+   172        22          0.019         173        52          0.018         174        77          0.017
+   175       130          0.017         176       115          0.014         177       141          0.007
+   178       163          0.006
+
+ Results for Y2 (referred to as plausible label B_Y2)
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1        48          0.381           2       117          0.323           3        82          0.323
+     4        14          0.316           5       178          0.315           6         4          0.294
+     7       127          0.276           8       175          0.272           9       146          0.266
+    10       126          0.245          11        12          0.242          12         2          0.241
+    13       158          0.238          14       148          0.237          15        89          0.236
+    16        30          0.235          17       160          0.233          18        92          0.231
+    19       136          0.229          20        51          0.226          21        46          0.215
+    22         9          0.212          23        55          0.200          24       134          0.193
+    25        74          0.190          26       173          0.188          27       166          0.186
+    28       168          0.185          29        24          0.185          30        93          0.184
+    31       129          0.182          32        65          0.178          33       174          0.178
+    34        42          0.176          35        23          0.173          36       140          0.172
+    37       150          0.163          38        26          0.159          39        44          0.158
+    40        85          0.156          41       155          0.155          42        17          0.155
+    43         7          0.153          44        76          0.151          45       176          0.151
+    46       169          0.149          47        84          0.145          48       125          0.142
+    49       104          0.140          50       138          0.138          51       118          0.137
+    52        61          0.135          53       151          0.133          54        87          0.132
+    55       108          0.131          56        59          0.130          57       119          0.130
+    58        63          0.126          59        67          0.123          60       165          0.121
+    61        96          0.117          62       113          0.116          63       154          0.113
+    64        32          0.112          65        70          0.110          66       167          0.109
+    67       143          0.108          68         6          0.106          69       121          0.106
+    70       144          0.105          71       120          0.103          72       112          0.102
+    73        11          0.102          74        98          0.102          75        38          0.102
+    76        21          0.102          77        95          0.102          78        43          0.100
+    79       177          0.096          80        15          0.095          81       128          0.095
+    82       124          0.094          83        62          0.093          84       170          0.093
+    85        83          0.092          86        10          0.091          87        69          0.091
+    88       122          0.090          89        80          0.090          90        86          0.089
+    91        40          0.089          92        97          0.089          93        13          0.088
+    94        47          0.085          95        71          0.084          96       133          0.084
+    97       114          0.084          98       152          0.084          99        75          0.083
+   100        25          0.082         101        78          0.081         102       137          0.081
+   103       132          0.080         104       102          0.078         105         5          0.077
+   106        81          0.077         107        91          0.076         108       109          0.075
+   109        45          0.075         110       116          0.074         111        27          0.073
+   112        53          0.073         113        20          0.072         114        19          0.072
+   115       157          0.072         116        37          0.071         117       100          0.068
+   118        99          0.067         119        35          0.067         120       106          0.063
+   121       131          0.063         122        94          0.063         123       164          0.063
+   124       107          0.062         125        49          0.061         126       153          0.061
+   127       105          0.061         128       135          0.060         129       123          0.060
+   130        36          0.059         131       149          0.058         132        31          0.056
+   133       147          0.056         134        41          0.055         135       171          0.054
+   136       162          0.054         137        54          0.053         138        16          0.049
+   139        60          0.046         140       115          0.044         141        34          0.041
+   142        88          0.041         143         1          0.041         144        29          0.037
+   145        18          0.037         146        90          0.037         147       145          0.036
+   148       172          0.034         149       111          0.033         150       103          0.032
+   151         3          0.032         152       101          0.031         153        56          0.031
+   154        68          0.030         155       142          0.030         156       139          0.029
+   157        77          0.027         158        39          0.027         159        64          0.026
+   160        28          0.024         161       110          0.024         162       163          0.022
+   163       156          0.022         164        22          0.021         165        79          0.019
+   166        58          0.019         167       161          0.018         168        57          0.018
+   169         8          0.017         170        33          0.016         171        66          0.016
+   172        73          0.011         173        72          0.009         174        50          0.008
+   175       159          0.007         176       141          0.005         177        52          0.004
+   178       130          0.002
+
+ Results for Y3 (referred to as plausible label B_Y3)
+
+ Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score     Ranking  Cluster    Factor Score
+     1        82          0.416           2       148          0.322           3        48          0.322
+     4       178          0.301           5        14          0.294           6       129          0.272
+     7       146          0.269           8       160          0.267           9         4          0.266
+    10       175          0.255          11        65          0.236          12       117          0.233
+    13        12          0.221          14        30          0.211          15         2          0.208
+    16        51          0.208          17       134          0.206          18         9          0.206
+    19       158          0.204          20        17          0.203          21        89          0.201
+    22       166          0.199          23       136          0.199          24       113          0.195
+    25        92          0.195          26       168          0.193          27        55          0.193
+    28        85          0.191          29       174          0.190          30       126          0.186
+    31        76          0.180          32        93          0.177          33        42          0.177
+    34       173          0.172          35         6          0.172          36         7          0.167
+    37        59          0.163          38        44          0.160          39       177          0.159
+    40        74          0.157          41       176          0.151          42        84          0.148
+    43       165          0.145          44        23          0.145          45       140          0.145
+    46        20          0.143          47        24          0.143          48        26          0.140
+    49        15          0.139          50       128          0.136          51       127          0.136
+    52        28          0.134          53        96          0.133          54       150          0.131
+    55        87          0.129          56       132          0.128          57        46          0.128
+    58       118          0.125          59        86          0.121          60       143          0.119
+    61        63          0.115          62       108          0.115          63        40          0.114
+    64        47          0.113          65       103          0.112          66        95          0.111
+    67        70          0.111          68       169          0.109          69        60          0.108
+    70       152          0.106          71        61          0.106          72        67          0.105
+    73       120          0.103          74        81          0.099          75        10          0.097
+    76        38          0.095          77       144          0.095          78         5          0.094
+    79        53          0.094          80       112          0.094          81       116          0.093
+    82        91          0.092          83        97          0.092          84       167          0.092
+    85        80          0.092          86       104          0.091          87       105          0.090
+    88       155          0.088          89        16          0.088          90       106          0.087
+    91        43          0.084          92       122          0.084          93        98          0.083
+    94       109          0.083          95       124          0.083          96       121          0.083
+    97        11          0.083          98        21          0.081          99        37          0.081
+   100        71          0.080         101       114          0.079         102       170          0.079
+   103        49          0.077         104       131          0.075         105        35          0.075
+   106       119          0.074         107       107          0.074         108        19          0.072
+   109        62          0.072         110       137          0.072         111       133          0.071
+   112        18          0.068         113       138          0.068         114        83          0.068
+   115       171          0.064         116       154          0.062         117        32          0.061
+   118        99          0.060         119       125          0.059         120       151          0.058
+   121        78          0.058         122       145          0.056         123        31          0.054
+   124         3          0.053         125        34          0.053         126       153          0.053
+   127        54          0.052         128       123          0.051         129        27          0.048
+   130        56          0.047         131       147          0.047         132        66          0.047
+   133       162          0.047         134        25          0.047         135        94          0.045
+   136       102          0.044         137       164          0.043         138       110          0.042
+   139        72          0.040         140       141          0.039         141        69          0.039
+   142       100          0.038         143        73          0.036         144        45          0.036
+   145        13          0.036         146       135          0.033         147        77          0.033
+   148       161          0.032         149        41          0.032         150        39          0.031
+   151        36          0.030         152        90          0.029         153        52          0.028
+   154       157          0.027         155       101          0.025         156       115          0.023
+   157        88          0.022         158         8          0.022         159       111          0.021
+   160       149          0.021         161       172          0.021         162        57          0.021
+   163        75          0.020         164       142          0.020         165        33          0.018
+   166        68          0.015         167         1          0.015         168       139          0.013
+   169        29          0.012         170        64          0.012         171        58          0.011
+   172       159          0.009         173        79          0.009         174       156          0.007
+   175       163          0.007         176        22          0.006         177        50          0.005
+   178       130         -0.001
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION FOR WITHIN
+
+
+           NU
+              Y1            Y2            Y3            Y1&1          Y2&1
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           NU
+              Y3&1
+              ________
+                    0
+
+
+           LAMBDA
+              Y1            Y2            Y3            Y1&1          Y2&1
+              ________      ________      ________      ________      ________
+ Y1                 0             0             0             0             0
+ Y2                 0             0             0             0             0
+ Y3                 0             0             0             0             0
+ Y1&1               0             0             0             0             0
+ Y2&1               0             0             0             0             0
+ Y3&1               0             0             0             0             0
+
+
+           LAMBDA
+              Y3&1
+              ________
+ Y1                 0
+ Y2                 0
+ Y3                 0
+ Y1&1               0
+ Y2&1               0
+ Y3&1               0
+
+
+           THETA
+              Y1            Y2            Y3            Y1&1          Y2&1
+              ________      ________      ________      ________      ________
+ Y1                 0
+ Y2                 0             0
+ Y3                 0             0             0
+ Y1&1               0             0             0             0
+ Y2&1               0             0             0             0             0
+ Y3&1               0             0             0             0             0
+
+
+           THETA
+              Y3&1
+              ________
+ Y3&1               0
+
+
+           ALPHA
+              Y1            Y2            Y3            Y1&1          Y2&1
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           ALPHA
+              Y3&1
+              ________
+                    0
+
+
+           BETA
+              Y1            Y2            Y3            Y1&1          Y2&1
+              ________      ________      ________      ________      ________
+ Y1                 0             0             0             0             0
+ Y2                 0             0             0             0             0
+ Y3                 0             0             0             0             0
+ Y1&1               0             0             0             0             0
+ Y2&1               0             0             0             0             0
+ Y3&1               0             0             0             0             0
+
+
+           BETA
+              Y3&1
+              ________
+ Y1                 0
+ Y2                 0
+ Y3                 0
+ Y1&1               0
+ Y2&1               0
+ Y3&1               0
+
+
+           PSI
+              Y1            Y2            Y3            Y1&1          Y2&1
+              ________      ________      ________      ________      ________
+ Y1                 1
+ Y2                 0             2
+ Y3                 0             0             3
+ Y1&1               0             0             0             0
+ Y2&1               0             0             0             0             0
+ Y3&1               0             0             0             0             0
+
+
+           PSI
+              Y3&1
+              ________
+ Y3&1               0
+
+
+     PARAMETER SPECIFICATION FOR BETWEEN
+
+
+           NU
+              Y1            Y2            Y3
+              ________      ________      ________
+                    0             0             0
+
+
+           LAMBDA
+              Y             PHI           WCY1          WCY2          WCY3
+              ________      ________      ________      ________      ________
+ Y1                 0             0             0             0             0
+ Y2                 0             0             0             0             0
+ Y3                 0             0             0             0             0
+
+
+           LAMBDA
+              WCPHI1        WCPHI2        WCPHI3        PHI1          PHI2
+              ________      ________      ________      ________      ________
+ Y1                 0             0             0             0             0
+ Y2                 0             0             0             0             0
+ Y3                 0             0             0             0             0
+
+
+           LAMBDA
+              PHI3          Y1            Y2            Y3
+              ________      ________      ________      ________
+ Y1                 0             0             0             0
+ Y2                 0             0             0             0
+ Y3                 0             0             0             0
+
+
+           THETA
+              Y1            Y2            Y3
+              ________      ________      ________
+ Y1                 0
+ Y2                 0             0
+ Y3                 0             0             0
+
+
+           ALPHA
+              Y             PHI           WCY1          WCY2          WCY3
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           ALPHA
+              WCPHI1        WCPHI2        WCPHI3        PHI1          PHI2
+              ________      ________      ________      ________      ________
+                    0             0             0             4             5
+
+
+           ALPHA
+              PHI3          Y1            Y2            Y3
+              ________      ________      ________      ________
+                    6             7             8             9
+
+
+           BETA
+              Y             PHI           WCY1          WCY2          WCY3
+              ________      ________      ________      ________      ________
+ Y                  0             0             0             0             0
+ PHI                0             0             0             0             0
+ WCY1               0             0             0             0             0
+ WCY2               0             0            10             0             0
+ WCY3               0             0             0            10             0
+ WCPHI1             0             0             0             0             0
+ WCPHI2             0             0            12             0             0
+ WCPHI3             0             0             0            12             0
+ PHI1               0             0             0             0             0
+ PHI2               0             0             0             0             0
+ PHI3               0             0             0             0             0
+ Y1                 0             0             0             0             0
+ Y2                 0             0             0             0             0
+ Y3                 0             0             0             0             0
+
+
+           BETA
+              WCPHI1        WCPHI2        WCPHI3        PHI1          PHI2
+              ________      ________      ________      ________      ________
+ Y                  0             0             0             0             0
+ PHI                0             0             0             0             0
+ WCY1               0             0             0             0             0
+ WCY2              11             0             0             0             0
+ WCY3               0            11             0             0             0
+ WCPHI1             0             0             0             0             0
+ WCPHI2            13             0             0             0             0
+ WCPHI3             0            13             0             0             0
+ PHI1               0             0             0             0             0
+ PHI2               0             0             0             0             0
+ PHI3               0             0             0             0             0
+ Y1                 0             0             0             0             0
+ Y2                 0             0             0             0             0
+ Y3                 0             0             0             0             0
+
+
+           BETA
+              PHI3          Y1            Y2            Y3
+              ________      ________      ________      ________
+ Y                  0             0             0             0
+ PHI                0             0             0             0
+ WCY1               0             0             0             0
+ WCY2               0             0             0             0
+ WCY3               0             0             0             0
+ WCPHI1             0             0             0             0
+ WCPHI2             0             0             0             0
+ WCPHI3             0             0             0             0
+ PHI1               0             0             0             0
+ PHI2               0             0             0             0
+ PHI3               0             0             0             0
+ Y1                 0             0             0             0
+ Y2                 0             0             0             0
+ Y3                 0             0             0             0
+
+
+           PSI
+              Y             PHI           WCY1          WCY2          WCY3
+              ________      ________      ________      ________      ________
+ Y                 14
+ PHI               15            16
+ WCY1               0             0            17
+ WCY2               0             0             0            18
+ WCY3               0             0             0             0            18
+ WCPHI1             0             0            19             0             0
+ WCPHI2             0             0             0            21             0
+ WCPHI3             0             0             0             0            21
+ PHI1               0             0             0             0             0
+ PHI2               0             0             0             0             0
+ PHI3               0             0             0             0             0
+ Y1                 0             0             0             0             0
+ Y2                 0             0             0             0             0
+ Y3                 0             0             0             0             0
+
+
+           PSI
+              WCPHI1        WCPHI2        WCPHI3        PHI1          PHI2
+              ________      ________      ________      ________      ________
+ WCPHI1            20
+ WCPHI2             0            22
+ WCPHI3             0             0            22
+ PHI1               0             0             0             0
+ PHI2               0             0             0             0             0
+ PHI3               0             0             0             0             0
+ Y1                 0             0             0             0             0
+ Y2                 0             0             0             0             0
+ Y3                 0             0             0             0             0
+
+
+           PSI
+              PHI3          Y1            Y2            Y3
+              ________      ________      ________      ________
+ PHI3               0
+ Y1                 0             0
+ Y2                 0             0             0
+ Y3                 0             0             0             0
+
+
+     STARTING VALUES FOR WITHIN
+
+
+           NU
+              Y1            Y2            Y3            Y1&1          Y2&1
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           NU
+              Y3&1
+              ________
+                0.000
+
+
+           LAMBDA
+              Y1            Y2            Y3            Y1&1          Y2&1
+              ________      ________      ________      ________      ________
+ Y1             1.000         0.000         0.000         0.000         0.000
+ Y2             0.000         1.000         0.000         0.000         0.000
+ Y3             0.000         0.000         1.000         0.000         0.000
+ Y1&1           0.000         0.000         0.000         1.000         0.000
+ Y2&1           0.000         0.000         0.000         0.000         1.000
+ Y3&1           0.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              Y3&1
+              ________
+ Y1             0.000
+ Y2             0.000
+ Y3             0.000
+ Y1&1           0.000
+ Y2&1           0.000
+ Y3&1           1.000
+
+
+           THETA
+              Y1            Y2            Y3            Y1&1          Y2&1
+              ________      ________      ________      ________      ________
+ Y1             0.000
+ Y2             0.000         0.000
+ Y3             0.000         0.000         0.000
+ Y1&1           0.000         0.000         0.000         0.000
+ Y2&1           0.000         0.000         0.000         0.000         0.000
+ Y3&1           0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              Y3&1
+              ________
+ Y3&1           0.000
+
+
+           ALPHA
+              Y1            Y2            Y3            Y1&1          Y2&1
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              Y3&1
+              ________
+                0.000
+
+
+           BETA
+              Y1            Y2            Y3            Y1&1          Y2&1
+              ________      ________      ________      ________      ________
+ Y1             0.000         0.000         0.000         0.000         0.000
+ Y2             0.000         0.000         0.000         0.000         0.000
+ Y3             0.000         0.000         0.000         0.000         0.000
+ Y1&1           0.000         0.000         0.000         0.000         0.000
+ Y2&1           0.000         0.000         0.000         0.000         0.000
+ Y3&1           0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              Y3&1
+              ________
+ Y1             0.000
+ Y2             0.000
+ Y3             0.000
+ Y1&1           0.000
+ Y2&1           0.000
+ Y3&1           0.000
+
+
+           PSI
+              Y1            Y2            Y3            Y1&1          Y2&1
+              ________      ________      ________      ________      ________
+ Y1             0.014
+ Y2             0.000         0.013
+ Y3             0.000         0.000         0.013
+ Y1&1           0.000         0.000         0.000         0.014
+ Y2&1           0.000         0.000         0.000         0.000         0.013
+ Y3&1           0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              Y3&1
+              ________
+ Y3&1           0.013
+
+
+     STARTING VALUES FOR BETWEEN
+
+
+           NU
+              Y1            Y2            Y3
+              ________      ________      ________
+                0.000         0.000         0.000
+
+
+           LAMBDA
+              Y             PHI           WCY1          WCY2          WCY3
+              ________      ________      ________      ________      ________
+ Y1             0.000         0.000         0.000         0.000         0.000
+ Y2             0.000         0.000         0.000         0.000         0.000
+ Y3             0.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              WCPHI1        WCPHI2        WCPHI3        PHI1          PHI2
+              ________      ________      ________      ________      ________
+ Y1             0.000         0.000         0.000         0.000         0.000
+ Y2             0.000         0.000         0.000         0.000         0.000
+ Y3             0.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              PHI3          Y1            Y2            Y3
+              ________      ________      ________      ________
+ Y1             0.000         1.000         0.000         0.000
+ Y2             0.000         0.000         1.000         0.000
+ Y3             0.000         0.000         0.000         1.000
+
+
+           THETA
+              Y1            Y2            Y3
+              ________      ________      ________
+ Y1             0.000
+ Y2             0.000         0.000
+ Y3             0.000         0.000         0.000
+
+
+           ALPHA
+              Y             PHI           WCY1          WCY2          WCY3
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              WCPHI1        WCPHI2        WCPHI3        PHI1          PHI2
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              PHI3          Y1            Y2            Y3
+              ________      ________      ________      ________
+                0.000         0.120         0.107         0.105
+
+
+           BETA
+              Y             PHI           WCY1          WCY2          WCY3
+              ________      ________      ________      ________      ________
+ Y              0.000         0.000         0.000         0.000         0.000
+ PHI            0.000         0.000         0.000         0.000         0.000
+ WCY1           0.000         0.000         0.000         0.000         0.000
+ WCY2           0.000         0.000         0.000         0.000         0.000
+ WCY3           0.000         0.000         0.000         0.000         0.000
+ WCPHI1         0.000         0.000         0.000         0.000         0.000
+ WCPHI2         0.000         0.000         0.000         0.000         0.000
+ WCPHI3         0.000         0.000         0.000         0.000         0.000
+ PHI1           0.000         1.000         0.000         0.000         0.000
+ PHI2           0.000         1.000         0.000         0.000         0.000
+ PHI3           0.000         1.000         0.000         0.000         0.000
+ Y1             1.000         0.000         1.000         0.000         0.000
+ Y2             1.000         0.000         0.000         1.000         0.000
+ Y3             1.000         0.000         0.000         0.000         1.000
+
+
+           BETA
+              WCPHI1        WCPHI2        WCPHI3        PHI1          PHI2
+              ________      ________      ________      ________      ________
+ Y              0.000         0.000         0.000         0.000         0.000
+ PHI            0.000         0.000         0.000         0.000         0.000
+ WCY1           0.000         0.000         0.000         0.000         0.000
+ WCY2           0.000         0.000         0.000         0.000         0.000
+ WCY3           0.000         0.000         0.000         0.000         0.000
+ WCPHI1         0.000         0.000         0.000         0.000         0.000
+ WCPHI2         0.000         0.000         0.000         0.000         0.000
+ WCPHI3         0.000         0.000         0.000         0.000         0.000
+ PHI1           1.000         0.000         0.000         0.000         0.000
+ PHI2           0.000         1.000         0.000         0.000         0.000
+ PHI3           0.000         0.000         1.000         0.000         0.000
+ Y1             0.000         0.000         0.000         0.000         0.000
+ Y2             0.000         0.000         0.000         0.000         0.000
+ Y3             0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              PHI3          Y1            Y2            Y3
+              ________      ________      ________      ________
+ Y              0.000         0.000         0.000         0.000
+ PHI            0.000         0.000         0.000         0.000
+ WCY1           0.000         0.000         0.000         0.000
+ WCY2           0.000         0.000         0.000         0.000
+ WCY3           0.000         0.000         0.000         0.000
+ WCPHI1         0.000         0.000         0.000         0.000
+ WCPHI2         0.000         0.000         0.000         0.000
+ WCPHI3         0.000         0.000         0.000         0.000
+ PHI1           0.000         0.000         0.000         0.000
+ PHI2           0.000         0.000         0.000         0.000
+ PHI3           0.000         0.000         0.000         0.000
+ Y1             0.000         0.000         0.000         0.000
+ Y2             0.000         0.000         0.000         0.000
+ Y3             0.000         0.000         0.000         0.000
+
+
+           PSI
+              Y             PHI           WCY1          WCY2          WCY3
+              ________      ________      ________      ________      ________
+ Y              1.000
+ PHI            0.000         1.000
+ WCY1           0.000         0.000         1.000
+ WCY2           0.000         0.000         0.000         1.000
+ WCY3           0.000         0.000         0.000         0.000         1.000
+ WCPHI1         0.000         0.000         0.000         0.000         0.000
+ WCPHI2         0.000         0.000         0.000         0.000         0.000
+ WCPHI3         0.000         0.000         0.000         0.000         0.000
+ PHI1           0.000         0.000         0.000         0.000         0.000
+ PHI2           0.000         0.000         0.000         0.000         0.000
+ PHI3           0.000         0.000         0.000         0.000         0.000
+ Y1             0.000         0.000         0.000         0.000         0.000
+ Y2             0.000         0.000         0.000         0.000         0.000
+ Y3             0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              WCPHI1        WCPHI2        WCPHI3        PHI1          PHI2
+              ________      ________      ________      ________      ________
+ WCPHI1         1.000
+ WCPHI2         0.000         1.000
+ WCPHI3         0.000         0.000         1.000
+ PHI1           0.000         0.000         0.000         0.001
+ PHI2           0.000         0.000         0.000         0.000         0.001
+ PHI3           0.000         0.000         0.000         0.000         0.000
+ Y1             0.000         0.000         0.000         0.000         0.000
+ Y2             0.000         0.000         0.000         0.000         0.000
+ Y3             0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              PHI3          Y1            Y2            Y3
+              ________      ________      ________      ________
+ PHI3           0.001
+ Y1             0.000         0.001
+ Y2             0.000         0.000         0.001
+ Y3             0.000         0.000         0.000         0.001
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 2~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 3~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 10~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 11~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 12~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 13~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 14~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 15~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 16~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 17~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 18~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 19~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 20~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 21~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 22~IW(0.000,-3)             infinity            infinity            infinity
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     PROCESSOR    BSEED
+     1            0
+     2            285380
+     3            253358
+     4            93468
+     5            608496
+     6            903420
+     7            195873
+     8            462953
+     9            939021
+     10           127215
+     11           415931
+     12           533738
+     13           107446
+     14           399671
+     15           650371
+     16           27071
+     17           76974
+     18           68985
+     19           851945
+     20           637345
+     21           573096
+     22           902278
+     23           887676
+     24           372176
+     25           347515
+     26           207896
+     27           569131
+     28           364676
+     29           392418
+     30           366706
+     31           432148
+     32           153942
+     33           626891
+     34           749453
+     35           341041
+     36           830392
+     37           260601
+     38           966014
+     39           246261
+     40           645664
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              1.196               11
+     200              2.343               10
+     300              2.285               10
+     400              1.421               10
+     500              1.215               11
+     600              1.119               11
+     700              1.073               11
+     800              1.078               12
+     900              1.059               12
+     1000             1.064               12
+     1100             1.053               11
+     1200             1.065               11
+     1300             1.033               11
+     1400             1.016               10
+     1500             1.019               10
+     1600             1.039               10
+     1700             1.045               11
+     1800             1.051               10
+     1900             1.036               10
+     2000             1.025               10
+     2100             1.016               5
+     2200             1.016               5
+     2300             1.023               5
+     2400             1.018               5
+     2500             1.013               6
+     2600             1.011               6
+     2700             1.013               6
+     2800             1.025               6
+     2900             1.027               6
+     3000             1.031               6
+     3100             1.030               6
+     3200             1.027               6
+     3300             1.031               6
+     3400             1.037               6
+     3500             1.047               6
+     3600             1.035               6
+     3700             1.037               6
+     3800             1.026               6
+     3900             1.019               6
+     4000             1.023               6
+     4100             1.024               6
+     4200             1.012               6
+     4300             1.015               5
+     4400             1.016               5
+     4500             1.024               5
+     4600             1.020               5
+     4700             1.019               5
+     4800             1.015               5
+     4900             1.015               5
+     5000             1.015               5
+     5100             1.014               4
+     5200             1.015               5
+     5300             1.011               5
+     5400             1.010               5
+     5500             1.008               5
+     5600             1.006               5
+     5700             1.005               4
+     5800             1.005               4
+     5900             1.004               11
+     6000             1.003               4
+     6100             1.002               20
+     6200             1.002               4
+     6300             1.002               4
+     6400             1.003               10
+     6500             1.005               10
+     6600             1.007               10
+     6700             1.003               10
+     6800             1.002               4
+     6900             1.002               4
+     7000             1.002               4
+     7100             1.003               4
+     7200             1.004               4
+     7300             1.003               10
+     7400             1.004               10
+     7500             1.004               4
+     7600             1.005               4
+     7700             1.008               4
+     7800             1.008               4
+     7900             1.012               4
+     8000             1.011               4
+     8100             1.013               4
+     8200             1.015               4
+     8300             1.014               4
+     8400             1.015               4
+     8500             1.011               5
+     8600             1.014               5
+     8700             1.013               5
+     8800             1.014               5
+     8900             1.014               5
+     9000             1.013               5
+     9100             1.011               5
+     9200             1.010               5
+     9300             1.008               5
+     9400             1.007               5
+     9500             1.006               10
+     9600             1.008               5
+     9700             1.009               5
+     9800             1.008               5
+     9900             1.009               5
+     10000            1.009               5
+     10100            1.008               5
+     10200            1.006               5
+     10300            1.006               5
+     10400            1.008               5
+     10500            1.007               5
+     10600            1.006               5
+     10700            1.004               5
+     10800            1.004               5
+     10900            1.004               5
+     11000            1.003               5
+     11100            1.003               4
+     11200            1.003               4
+     11300            1.003               4
+     11400            1.002               4
+     11500            1.003               4
+     11600            1.003               4
+     11700            1.003               4
+     11800            1.003               4
+     11900            1.003               4
+     12000            1.004               12
+     12100            1.004               12
+     12200            1.005               12
+     12300            1.005               13
+     12400            1.005               13
+     12500            1.006               13
+     12600            1.005               13
+     12700            1.005               12
+     12800            1.004               10
+     12900            1.005               10
+     13000            1.006               10
+     13100            1.008               10
+     13200            1.006               10
+     13300            1.004               10
+     13400            1.004               10
+     13500            1.004               10
+     13600            1.003               10
+     13700            1.003               12
+     13800            1.003               12
+     13900            1.003               12
+     14000            1.003               12
+     14100            1.003               12
+     14200            1.003               12
+     14300            1.004               12
+     14400            1.004               10
+     14500            1.007               10
+     14600            1.006               10
+     14700            1.007               10
+     14800            1.005               10
+     14900            1.004               10
+     15000            1.004               10
+     15100            1.004               10
+     15200            1.004               10
+     15300            1.004               10
+     15400            1.003               11
+     15500            1.005               10
+     15600            1.007               10
+     15700            1.006               10
+     15800            1.005               10
+     15900            1.006               11
+     16000            1.005               11
+     16100            1.005               11
+     16200            1.004               11
+     16300            1.004               11
+     16400            1.004               11
+     16500            1.004               11
+     16600            1.005               11
+     16700            1.006               11
+     16800            1.004               11
+     16900            1.003               11
+     17000            1.003               11
+     17100            1.003               11
+     17200            1.003               12
+     17300            1.003               12
+     17400            1.002               11
+     17500            1.003               11
+     17600            1.003               11
+     17700            1.003               11
+     17800            1.004               11
+     17900            1.005               11
+     18000            1.006               11
+     18100            1.006               11
+     18200            1.007               11
+     18300            1.008               11
+     18400            1.009               11
+     18500            1.008               11
+     18600            1.008               11
+     18700            1.007               10
+     18800            1.009               10
+     18900            1.010               10
+     19000            1.011               10
+     19100            1.011               10
+     19200            1.011               11
+     19300            1.010               11
+     19400            1.010               10
+     19500            1.010               11
+     19600            1.011               11
+     19700            1.011               11
+     19800            1.012               11
+     19900            1.010               11
+     20000            1.011               11
+     20100            1.009               11
+     20200            1.010               11
+     20300            1.011               11
+     20400            1.011               11
+     20500            1.012               11
+     20600            1.011               11
+     20700            1.011               11
+     20800            1.012               11
+     20900            1.011               11
+     21000            1.011               11
+     21100            1.010               11
+     21200            1.011               11
+     21300            1.011               11
+     21400            1.012               11
+     21500            1.011               11
+     21600            1.010               11
+     21700            1.011               11
+     21800            1.012               11
+     21900            1.012               11
+     22000            1.011               11
+     22100            1.010               11
+     22200            1.009               11
+     22300            1.008               11
+     22400            1.008               11
+     22500            1.007               11
+     22600            1.007               11
+     22700            1.008               11
+     22800            1.008               11
+     22900            1.008               11
+     23000            1.008               11
+     23100            1.009               11
+     23200            1.008               11
+     23300            1.008               11
+     23400            1.008               11
+     23500            1.009               11
+     23600            1.008               11
+     23700            1.007               11
+     23800            1.007               11
+     23900            1.006               11
+     24000            1.006               11
+     24100            1.006               11
+     24200            1.005               11
+     24300            1.005               11
+     24400            1.005               11
+     24500            1.005               11
+     24600            1.005               11
+     24700            1.004               11
+     24800            1.005               11
+     24900            1.006               11
+     25000            1.006               11
+
+
+SUMMARIES OF PLAUSIBLE VALUES (N = NUMBER OF OBSERVATIONS * NUMBER OF IMPUTATIONS)
+
+
+     SAMPLE STATISTICS
+
+
+           Means
+              Y             PHI           WCY1          WCY2          WCY3
+              ________      ________      ________      ________      ________
+                0.000        -0.001         0.000         0.000         0.001
+
+
+           Means
+              WCPHI1        WCPHI2        WCPHI3        PHI1          PHI2
+              ________      ________      ________      ________      ________
+               -0.001        -0.010         0.009         0.232         0.187
+
+
+           Means
+              PHI3          B_Y1          B_Y2          B_Y3
+              ________      ________      ________      ________
+                0.175         0.119         0.108         0.104
+
+
+           Covariances
+              Y             PHI           WCY1          WCY2          WCY3
+              ________      ________      ________      ________      ________
+ Y              0.004
+ PHI            0.004         0.011
+ WCY1           0.000         0.000         0.001
+ WCY2           0.000         0.000         0.001         0.002
+ WCY3           0.000         0.000         0.001         0.001         0.002
+ WCPHI1         0.000         0.000         0.001        -0.001         0.000
+ WCPHI2         0.000         0.000         0.000         0.002         0.000
+ WCPHI3         0.000        -0.001         0.000         0.000         0.002
+ PHI1           0.004         0.011         0.001        -0.001         0.000
+ PHI2           0.004         0.011         0.000         0.002         0.000
+ PHI3           0.004         0.010         0.000         0.000         0.002
+ B_Y1           0.004         0.004         0.001         0.001         0.001
+ B_Y2           0.004         0.004         0.001         0.002         0.001
+ B_Y3           0.004         0.004         0.001         0.001         0.001
+
+
+           Covariances
+              WCPHI1        WCPHI2        WCPHI3        PHI1          PHI2
+              ________      ________      ________      ________      ________
+ WCPHI1         0.036
+ WCPHI2        -0.006         0.029
+ WCPHI3         0.003        -0.003         0.025
+ PHI1           0.036        -0.006         0.002         0.048
+ PHI2          -0.006         0.029        -0.004         0.005         0.041
+ PHI3           0.003        -0.003         0.024         0.013         0.007
+ B_Y1           0.001         0.001         0.000         0.005         0.005
+ B_Y2          -0.001         0.002         0.000         0.003         0.006
+ B_Y3           0.000         0.001         0.001         0.004         0.005
+
+
+           Covariances
+              PHI3          B_Y1          B_Y2          B_Y3
+              ________      ________      ________      ________
+ PHI3           0.036
+ B_Y1           0.004         0.006
+ B_Y2           0.004         0.005         0.006
+ B_Y3           0.006         0.005         0.005         0.006
+
+
+           Correlations
+              Y             PHI           WCY1          WCY2          WCY3
+              ________      ________      ________      ________      ________
+ Y              1.000
+ PHI            0.634         1.000
+ WCY1          -0.027        -0.008         1.000
+ WCY2          -0.014        -0.005         0.830         1.000
+ WCY3          -0.022        -0.009         0.760         0.842         1.000
+ WCPHI1        -0.002        -0.005         0.172        -0.116        -0.022
+ WCPHI2         0.036         0.016         0.035         0.314         0.054
+ WCPHI3        -0.038        -0.039         0.062         0.013         0.270
+ PHI1           0.304         0.478         0.146        -0.100        -0.022
+ PHI2           0.359         0.530         0.030         0.263         0.044
+ PHI3           0.317         0.520         0.050         0.009         0.222
+ B_Y1           0.769         0.497         0.466         0.398         0.348
+ B_Y2           0.776         0.483         0.407         0.496         0.422
+ B_Y3           0.774         0.507         0.357         0.413         0.476
+
+
+           Correlations
+              WCPHI1        WCPHI2        WCPHI3        PHI1          PHI2
+              ________      ________      ________      ________      ________
+ WCPHI1         1.000
+ WCPHI2        -0.194         1.000
+ WCPHI3         0.106        -0.128         1.000
+ PHI1           0.861        -0.158         0.069         1.000
+ PHI2          -0.167         0.831        -0.129         0.119         1.000
+ PHI3           0.084        -0.100         0.810         0.323         0.194
+ B_Y1           0.083         0.048        -0.004         0.313         0.301
+ B_Y2          -0.075         0.181        -0.035         0.169         0.405
+ B_Y3          -0.005         0.063         0.113         0.242         0.318
+
+
+           Correlations
+              PHI3          B_Y1          B_Y2          B_Y3
+              ________      ________      ________      ________
+ PHI3           1.000
+ B_Y1           0.272         1.000
+ B_Y2           0.239         0.821         1.000
+ B_Y3           0.377         0.770         0.851         1.000
+
+
+SUMMARY OF PLAUSIBLE STANDARD DEVIATION (N = NUMBER OF OBSERVATIONS)
+
+
+     SAMPLE STATISTICS
+
+
+           Means
+              Y_SD          PHI_SD        WCY1_SD       WCY2_SD       WCY3_SD
+              ________      ________      ________      ________      ________
+                0.035         0.076         0.034         0.034         0.034
+
+
+           Means
+              WCPHI1_S      WCPHI2_S      WCPHI3_S      PHI1_SD       PHI2_SD
+              ________      ________      ________      ________      ________
+                0.127         0.122         0.119         0.121         0.121
+
+
+           Means
+              PHI3_SD       B_Y1_SD       B_Y2_SD       B_Y3_SD
+              ________      ________      ________      ________
+                0.116         0.020         0.018         0.018
+
+
+           Covariances
+              Y_SD          PHI_SD        WCY1_SD       WCY2_SD       WCY3_SD
+              ________      ________      ________      ________      ________
+ Y_SD           0.000
+ PHI_SD         0.000         0.000
+ WCY1_SD        0.000         0.000         0.000
+ WCY2_SD        0.000         0.000         0.000         0.000
+ WCY3_SD        0.000         0.000         0.000         0.000         0.000
+ WCPHI1_S       0.000         0.000         0.000         0.000         0.000
+ WCPHI2_S       0.000         0.000         0.000         0.000         0.000
+ WCPHI3_S       0.000         0.000         0.000         0.000         0.000
+ PHI1_SD        0.000         0.000         0.000         0.000         0.000
+ PHI2_SD        0.000         0.000         0.000         0.000         0.000
+ PHI3_SD        0.000         0.000         0.000         0.000         0.000
+ B_Y1_SD        0.000         0.000         0.000         0.000         0.000
+ B_Y2_SD        0.000         0.000         0.000         0.000         0.000
+ B_Y3_SD        0.000         0.000         0.000         0.000         0.000
+
+
+           Covariances
+              WCPHI1_S      WCPHI2_S      WCPHI3_S      PHI1_SD       PHI2_SD
+              ________      ________      ________      ________      ________
+ WCPHI1_S       0.001
+ WCPHI2_S       0.000         0.000
+ WCPHI3_S       0.000         0.000         0.000
+ PHI1_SD        0.001         0.000         0.000         0.001
+ PHI2_SD        0.000         0.000         0.000         0.000         0.001
+ PHI3_SD        0.000         0.000         0.000         0.000         0.000
+ B_Y1_SD        0.000         0.000         0.000         0.000         0.000
+ B_Y2_SD        0.000         0.000         0.000         0.000         0.000
+ B_Y3_SD        0.000         0.000         0.000         0.000         0.000
+
+
+           Covariances
+              PHI3_SD       B_Y1_SD       B_Y2_SD       B_Y3_SD
+              ________      ________      ________      ________
+ PHI3_SD        0.001
+ B_Y1_SD        0.000         0.000
+ B_Y2_SD        0.000         0.000         0.000
+ B_Y3_SD        0.000         0.000         0.000         0.000
+
+
+           Correlations
+              Y_SD          PHI_SD        WCY1_SD       WCY2_SD       WCY3_SD
+              ________      ________      ________      ________      ________
+ Y_SD           1.000
+ PHI_SD         0.479         1.000
+ WCY1_SD        0.829         0.423         1.000
+ WCY2_SD        0.832         0.460         0.869         1.000
+ WCY3_SD        0.785         0.412         0.788         0.896         1.000
+ WCPHI1_S      -0.036         0.138        -0.018        -0.033        -0.007
+ WCPHI2_S      -0.142        -0.021        -0.122        -0.062        -0.073
+ WCPHI3_S      -0.016         0.101        -0.065        -0.042         0.048
+ PHI1_SD       -0.247         0.018        -0.251        -0.233        -0.186
+ PHI2_SD       -0.322        -0.041        -0.290        -0.286        -0.275
+ PHI3_SD       -0.237        -0.056        -0.305        -0.286        -0.260
+ B_Y1_SD        0.354         0.189         0.401         0.292         0.264
+ B_Y2_SD        0.334         0.233         0.346         0.358         0.371
+ B_Y3_SD        0.193         0.177         0.241         0.267         0.270
+
+
+           Correlations
+              WCPHI1_S      WCPHI2_S      WCPHI3_S      PHI1_SD       PHI2_SD
+              ________      ________      ________      ________      ________
+ WCPHI1_S       1.000
+ WCPHI2_S       0.173         1.000
+ WCPHI3_S       0.177         0.203         1.000
+ PHI1_SD        0.870         0.175         0.197         1.000
+ PHI2_SD        0.227         0.822         0.175         0.208         1.000
+ PHI3_SD        0.215         0.200         0.755         0.305         0.229
+ B_Y1_SD       -0.207        -0.240        -0.058        -0.395        -0.202
+ B_Y2_SD       -0.007        -0.310         0.051        -0.105        -0.369
+ B_Y3_SD       -0.073        -0.188        -0.121        -0.147        -0.144
+
+
+           Correlations
+              PHI3_SD       B_Y1_SD       B_Y2_SD       B_Y3_SD
+              ________      ________      ________      ________
+ PHI3_SD        1.000
+ B_Y1_SD       -0.187         1.000
+ B_Y2_SD       -0.229         0.233         1.000
+ B_Y3_SD       -0.274         0.289         0.243         1.000
+
+
+PLOT INFORMATION
+
+The following plots are available:
+
+  Histograms (sample values, estimated factor scores)
+  Scatterplots (sample values, estimated factor scores)
+  Between-level histograms (sample values, sample/estimated means/variances, estimated factor scores)
+  Between-level scatterplots (sample values, sample/estimated means/variances, estimated factor scores)
+  Time series plots (sample values, ACF, PACF, estimated factor scores)
+  Histogram of subjects per time point
+  Time interval plots
+  Bayesian posterior parameter distributions
+  Bayesian posterior parameter trace plots
+  Bayesian autocorrelation plots
+  Latent variable distribution plots
+
+DIAGRAM INFORMATION
+
+  Mplus diagrams are currently not available for multilevel analysis.
+  No diagram output was produced.
+
+
+     Beginning Time:  13:39:30
+        Ending Time:  04:41:03
+       Elapsed Time:  15:01:33
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2024 Muthen & Muthen

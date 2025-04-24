@@ -1,0 +1,78 @@
+---
+title: "Variance decomposition for Dynamic Measurement Burst Models "
+format: html
+editor: visual
+---
+
+Here we explain how to set up the basic syntax for variance decompositon in Mplus, as explained in Andresen et al. (in prep) Section, 3.2.1.
+
+## Input Instructions
+
+Input instructions for this model deviate slightly from the input instructions used in more complex models. Importantly, for variance decomposition, the `TINTERVAL` variable is not necessary as the order of observed moments is not relevant for variance decomposition. The basic model can be set up as follows:
+
+``` default
+TITLE:    M0: Variance Decomposition
+DATA:     FILE = "example.dat";
+
+VARIABLE: NAMES = ID hour Y1 Y2 Y3;
+          CLUSTER = ID;           !Define macro (i) level
+          USEVAR = Y1 Y2 Y3;      !TINTERVAL variable not required
+          MISSING = ALL(999);
+  ANALYSIS:
+
+          TYPE = TWOLEVEL;
+          ESTIMATOR = BAYES;
+          BITERATIONS = (10000);
+          PROCESSORS = 30;
+```
+
+## The MODEL command
+
+In the `MODEL` command, the main model for variance decompositioon is specified. Here, we specify the micro-level variance in the `%WITHIN%` part and the meso- and macro-level variance in the `%BETWEEN%` part of the model.
+
+``` default
+MODEL:
+
+%WITHIN%
+          !Y1-Y3 WITH Y1-Y3@0;    ! by default these are zero
+          
+          ! defining micro-level variance
+          Y1-Y3 (micro1-micro3);
+
+%BETWEEN%
+          !Creating a random intercept for means of Y, ie. the RI for mood
+          M BY Y1-Y3@1;
+
+          !defining meso-level variance
+          Y1-Y3 (meso1-meso3);
+
+          ! defining macro-level between macro variance
+          Y (macro);
+```
+
+## The MODEL CONSTRAINT command
+
+Finally, the `MODEL CONSTRAINT` command needs to be used to compute variance proportions as fractions in the Mplus output. This can be done in the following way:
+
+``` default
+MODEL CONSTRAINT:
+
+          ! Compute the proportions of variance:
+          NEW (micro1); micro1 = microv1/(microv1 + mesov1 + macrov);
+          NEW (meso1); meso1 = mesov1/(microv1 + mesov1 + macrov);
+          NEW (macro1); macro1 = macrov/(microv1 + mesov1 + macrov);
+
+          NEW (micro2); micro2 = microv2/(microv2 + mesov2 + macrov);
+          NEW (meso2); meso2 = mesov2/(microv2 + mesov2 + macrov);
+          NEW (macro2); macro2 = macrov/(microv2 + mesov2 + macrov);
+
+          NEW (micro3); micro3 = microv3/(microv3 + mesov3 + macrov);
+          NEW (meso3); meso3 = mesov3/(microv3 + mesov3 + macrov);
+          NEW (macro3); macro3 = macrov/(microv3 + mesov3 + macrov);
+          
+          !Complete the above for as many bursts as in the data
+          
+OUTPUT:   TECH1 TECH8 STDYX FSCOMPARISON;
+PLOT:     TYPE = PLOT3;
+
+```

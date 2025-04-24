@@ -1,0 +1,36 @@
+project:
+  type: website
+
+website:
+  title: "Modeling Measurement Burst Data in Mplus"
+  navbar:
+    search: true
+    page-navigation: true
+    right:
+      - text: "About Me"
+        file: about.qmd  # add about file here
+      - icon: github
+        href: https://github.com/PiaAndresen
+  sidebar:
+    style: "floating"
+    contents:
+      - text: "Home"
+        file: index.qmd
+#      - text: "Data Preparation"
+#        file: data_prep.qmd
+      - text: "Variance Decomposition"
+        file: variance_decomposition.qmd
+      - text: "Model 1: Saturated Network Models of Process Features"
+        file: Model1_ab.qmd
+      - text: "Model 2: Specifying the Dynamic MBM"
+        file: RICLPM_ab.qmd
+
+format:
+  html:
+    theme:
+      light: minty
+      dark: darkly
+    css: styles.css
+    toc: true
+
+

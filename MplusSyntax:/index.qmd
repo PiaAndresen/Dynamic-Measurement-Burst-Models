@@ -1,0 +1,34 @@
+---
+title: "Dynamic Measurement Burst Models: A Tutorial"
+format: html
+editor: visual
+author:
+  - name: "Pia K. Andresen"
+    orcid: 0000-0001-8060-6448
+    affiliation: "Utrecht University"
+  - name: "Noémi K. Schuurman"
+    affiliation: "Utrecht University"
+  - name: "Ellen L. Hamaker"
+    affiliation: "Utrecht University"
+---
+
+## Welcome
+
+This website is a supplement to "From Moments to Lifetimes: Modeling Measurement Bursts using DSEM" by Andresen, Schuurman and Hamaker (in prep). Please cite us when suing this method.
+
+This website contains Mplus syntax for v.8.11, to specify dynamic measurement burst models (DMBM), an approach integrating the multilevel first order autoregressive model (ML-AR(1)M) and the random intercept cross-lagged panel model (RI-CLPM) to assess stability and change in psychological processes at the micro- measo and macro-level.
+
+On this website, we provide a simple tutorial for running these models in Mplus. Concretely, we will explain:
+
+1.  The basic Mplus Syntax for Variance Decomposition as used in used in Andresen et al (in prep.)
+2.  Mplus syntax of a network model for cross-burst correlations of micro-level process features 
+3.  Mplus syntax of the DMBM for assessing micro- and meso-level dynamics and macro-level stability
+
+
+Use the sidebar to navigate this website.
+
+All models presented on this website were tested using the empirical example presented in Andresen et al (in prep.). 
+Mplus output files can be found "\[here\]"(add link to online data archive folder).
+
+Please note that we do not possess ownership of the data. Researchers wishing to obtain data for further investigation or as part of this tutorial are obliged to request the data for the [Emote Database](https://emotedatabase.com/datasets/?page=2).
+

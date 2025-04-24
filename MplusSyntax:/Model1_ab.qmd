@@ -1,0 +1,131 @@
+---
+title: "Model 1: Saturated Network Models"
+format: html
+editor: visual
+---
+On this page, we present the Mplus model syntax used to specify saturated network models of process features, as introduced in Andresen et. al. (in prep). This syntax corresponds with models 1a and 1b, as presented in section 3.3.1 of the paper.
+
+Please use the tabs below to navigate between syntax of model 1a (excluding random residual variance), and syntax of model 1b (including random residual variance).
+
+::: panel-tabset
+## Saturated Network Model 1a
+
+The syntax for specifying Model 1a is given below.
+
+``` default
+TITLE:      M1a: Network of Mean and Inertia/Autoregression
+
+DATA:
+            FILE = "EXAMPLE.dat";
+
+VARIABLE:
+  
+            NAMES = ID hour Y1 Y2 Y3;
+            MISSING=.;
+
+            CLUSTER = ID;
+            
+            USEVAR = Y1 Y2 Y3 ;
+            LAGGED = Y1(1) Y2(1) Y3(1);
+            
+            TINTERVAL = hour(1);
+            MISSING = ALL(999);
+            
+ANALYSIS:
+
+            TYPE = TWOLEVEL RANDOM;
+            ESTIMATOR = BAYES;
+            BITERATIONS = (10000);
+            CHAINS=2;
+            PROCESSORS = 30;
+            
+MODEL:
+  
+%WITHIN%
+
+! PER BURST: SPECIFY AR(1) PROCESS WITH A RANDOM AUTOREGRESSION
+
+            phi1 | Y1 ON Y1&1;
+            phi2 | Y2 ON Y2&1;
+            phi3 | Y3 ON Y3&1;
+
+! SET COVARIANCES BETWEEN BURST-SPECIFIC OBSERVATIONS TO ZERO (NOT DEFAULT)
+            Y1-Y3 WITH Y1-Y3@0;
+
+
+%BETWEEN%
+
+! ASK FOR AN UNCONSTRAINED COVARIANCE MATRIX OF PROCESS FEATURES
+
+            Y1-Y3 phi1-phi3 WITH
+            Y1-Y3 phi1-phi3;
+
+OUTPUT:
+            TECH1 TECH3 TECH8 STDYX FSCOMPARISON;
+PLOT:
+            TYPE = PLOT3;
+            FACTOR =All;
+```
+
+## Saturated Network Model 2b
+
+The syntax for specifying Model 1b is given below.
+
+``` default
+TITLE:      M1b: Network of Mean and Inertia/Autoregression and Random Residual Variance
+
+DATA:
+            FILE = "EXAMPLE.dat";
+
+VARIABLE:
+  
+            NAMES = ID hour Y1 Y2 Y3;
+            MISSING=.;
+
+            CLUSTER = ID;
+            
+            USEVAR = Y1 Y2 Y3 ;
+            LAGGED = Y1(1) Y2(1) Y3(1);
+            
+            TINTERVAL = hour(1);
+            MISSING = ALL(999);
+            
+ANALYSIS:
+
+            TYPE = TWOLEVEL RANDOM;
+            ESTIMATOR = BAYES;
+            BITERATIONS = (10000);
+            CHAINS=2;
+            PROCESSORS = 30;
+            
+MODEL:
+  
+%WITHIN%
+
+! PER BURST: SPECIFY AR(1) PROCESS WITH A RANDOM AUTOREGRESSION
+
+            phi1 | Y1 ON Y1&1;
+            phi2 | Y2 ON Y2&1;
+            phi3 | Y3 ON Y3&1;
+
+! PER BURST: SPECIFY RANDOM RESIDUAL VARIANCES (WILL BE LOG RESIDUAL VARIANCES AT BETW
+
+            rv1 | Y1;
+            rv2 | Y2;
+            rv3 | Y3;
+
+
+%BETWEEN%
+
+! ASK FOR AN UNCONSTRAINED COVARIANCE MATRIX OF PROCESS FEATURES
+
+            Y1-Y3 phi1-phi3 rv1-rv3 WITH
+            Y1-Y3 phi1-phi3 rv1-rv3;
+
+OUTPUT:
+            TECH1 TECH3 TECH8 STDYX FSCOMPARISON;
+PLOT:
+            TYPE = PLOT3;
+            FACTOR =All;
+```
+:::

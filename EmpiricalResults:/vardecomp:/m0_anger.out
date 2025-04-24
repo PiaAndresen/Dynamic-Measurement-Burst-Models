@@ -1,0 +1,678 @@
+Mplus VERSION 8.11 (Linux)
+MUTHEN & MUTHEN
+10/25/2024   9:56 AM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  M0: Variance Decomposition for Anger
+  DATA:
+  FILE = "m0_anger.dat";
+
+  VARIABLE:
+  NAMES = ID hour Y1 Y2 Y3;
+   MISSING=.;
+
+                              CLUSTER = ID;
+                              USEVAR = Y1 Y2 Y3;
+                              MISSING = ALL(999);
+  ANALYSIS:
+
+                                TYPE = TWOLEVEL;
+                              ESTIMATOR = BAYES;
+                              BITERATIONS = (10000);
+                              PROCESSORS = 30;
+  MODEL:
+
+
+                              %WITHIN%
+                              !Y1-Y3 WITH Y1-Y3@0;    ! by default these are zero
+
+                              ! defining measurement-occasion variance
+                              Y1-Y3 (measurev1-measurev3);
+
+                              %BETWEEN%
+                              !Creating a random intercept for means of Y
+                              Y BY Y1-Y3@1;
+
+                              !defining burst variance
+                              Y1-Y3 (burstv1-burstv3);
+
+                              ! defining between person variance
+                              Y (personv);
+  MODEL CONSTRAINT:
+
+    ! Compute the M-B-P proportions of variance:
+  NEW (measure1); measure1 = measurev1/(measurev1 + burstv1 + personv);
+  NEW (burst1); burst1 = burstv1/(measurev1 + burstv1 + personv);
+  NEW (person1); person1 = personv/(measurev1 + burstv1 + personv);
+
+  NEW (measure2); measure2 = measurev2/(measurev2 + burstv2 + personv);
+  NEW (burst2); burst2 = burstv2/(measurev2 + burstv2 + personv);
+  NEW (person2); person2 = personv/(measurev2 + burstv2 + personv);
+
+  NEW (measure3); measure3 = measurev3/(measurev3 + burstv3 + personv);
+  NEW (burst3); burst3 = burstv3/(measurev3 + burstv3 + personv);
+  NEW (person3); person3 = personv/(measurev3 + burstv3 + personv);
+  OUTPUT:
+  TECH1 TECH8 STDYX FSCOMPARISON;
+  PLOT:
+  TYPE = PLOT3;
+
+
+
+*** WARNING
+  One or more individual-level variables have no variation within a
+  cluster for the following clusters.
+
+     Variable   Cluster IDs with no within-cluster variation
+
+      Y2          130
+      Y3          50 130
+
+*** WARNING in OUTPUT command
+  FSCOMPARISON is only available with TYPE=TWOLEVEL with ESTIMATOR=BAYES when
+  factor scores are requested in the SAVEDATA or PLOT command.
+  Request for FSCOMPARISON is ignored.
+*** WARNING
+  Data set contains cases with missing on all variables.
+  These cases were not included in the analysis.
+  Number of cases with missing on all variables:  1
+   3 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+M0: Variance Decomposition for Anger
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                       33042
+
+Number of dependent variables                                    3
+Number of independent variables                                  0
+Number of continuous latent variables                            1
+
+Observed dependent variables
+
+  Continuous
+   Y1          Y2          Y3
+
+Continuous latent variables
+   Y
+
+Variables with special functions
+
+  Cluster variable      ID
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               2
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Convergence criterion                                  0.500D-01
+  Maximum number of iterations                               50000
+  K-th iteration used for thinning                               1
+
+Input data file(s)
+  m0_anger.dat
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+     Number of clusters                        178
+
+       Size (s)    Cluster ID with Size s
+
+         89        17
+        139        7 151
+        141        70
+        146        145
+        147        42 16
+        151        28 127
+        155        2 51
+        158        149 113
+        159        99 84
+        165        162
+        166        40
+        167        63
+        169        59
+        171        114 150 80 45
+        172        97 48 118 175
+        173        50 172 61
+        174        130 95
+        175        9 11 78 21
+        176        3 73
+        177        44 90 124 15
+        178        135 141 161
+        179        98 167 96 27
+        180        169 106 23
+        181        94 129 108 132
+        182        31 18 56 125
+        183        136 105 116 49 82 100
+        184        66 76 69 115 62 176
+        185        155 52 173 119 74
+        186        60 164
+        187        19 67 137
+        188        103 163 79
+        189        83 168 159 35 85 110 152
+        190        170 24 104 20 102
+        191        65 165 86 34 91
+        192        53 4 10 39 26
+        193        33 5 140 64
+        194        8 134 171 41 157 121 58
+        195        138 156 68 55 46 77 89 174 117 128 178 1
+        196        144 12
+        197        57 101 37 142 87
+        198        88 38 92 154 112 93
+        199        158 71 147 72 30 123
+        200        29 25 146 120 36 47
+        201        75 54 131 148 177 139
+        202        81 13
+        203        160 6 166 43 153
+        204        143
+        205        109 14 122
+        206        126 107
+        207        22
+        209        133
+        212        32
+        215        111
+
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+     Number of missing data patterns             4
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              Y1            Y2            Y3
+              ________      ________      ________
+ Y1             0.332
+ Y2             0.000         0.333
+ Y3             0.000         0.000         0.335
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     Y1                    0.120       2.598       0.000   22.13%       0.000      0.050      0.070
+           10972.000       0.027       7.732       1.000    0.40%       0.090      0.170
+     Y2                    0.107       2.789       0.000   28.91%       0.000      0.040      0.060
+           11006.000       0.025       9.072       1.000    0.29%       0.080      0.150
+     Y3                    0.105       2.777       0.000   32.31%       0.000      0.030      0.060
+           11064.000       0.025       8.965       1.000    0.35%       0.080      0.150
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              10
+
+Bayesian Posterior Predictive Checking using Chi-Square
+
+          95% Confidence Interval for the Difference Between
+          the Observed and the Replicated Chi-Square Values
+
+                                -11.444            21.307
+
+          Posterior Predictive P-Value              0.284
+
+Information Criteria
+
+          Deviance (DIC)                       -35842.695
+          Estimated Number of Parameters (pD)     462.318
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within Level
+
+ Variances
+    Y1                 0.021       0.000      0.000       0.020       0.022      *
+    Y2                 0.019       0.000      0.000       0.018       0.019      *
+    Y3                 0.019       0.000      0.000       0.019       0.020      *
+
+Between Level
+
+ Y        BY
+    Y1                 1.000       0.000      0.000       1.000       1.000
+    Y2                 1.000       0.000      0.000       1.000       1.000
+    Y3                 1.000       0.000      0.000       1.000       1.000
+
+ Intercepts
+    Y1                 0.122       0.007      0.000       0.108       0.136      *
+    Y2                 0.108       0.006      0.000       0.095       0.121      *
+    Y3                 0.104       0.006      0.000       0.091       0.117      *
+
+ Variances
+    Y                  0.005       0.001      0.000       0.004       0.007      *
+
+ Residual Variances
+    Y1                 0.002       0.000      0.000       0.002       0.003      *
+    Y2                 0.001       0.000      0.000       0.000       0.001      *
+    Y3                 0.001       0.000      0.000       0.001       0.002      *
+
+New/Additional Parameters
+    MEASURE1           0.725       0.020      0.000       0.683       0.761      *
+    BURST1             0.084       0.012      0.000       0.063       0.110      *
+    PERSON1            0.190       0.018      0.000       0.157       0.231      *
+    MEASURE2           0.749       0.020      0.000       0.706       0.784      *
+    BURST2             0.029       0.008      0.000       0.015       0.048      *
+    PERSON2            0.221       0.021      0.000       0.184       0.267      *
+    MEASURE3           0.743       0.020      0.000       0.700       0.779      *
+    BURST3             0.042       0.009      0.000       0.026       0.061      *
+    PERSON3            0.215       0.020      0.000       0.179       0.259      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+Within Level
+
+ Variances
+    Y1                 1.000       0.000      0.000       1.000       1.000
+    Y2                 1.000       0.000      0.000       1.000       1.000
+    Y3                 1.000       0.000      0.000       1.000       1.000
+
+Between Level
+
+ Y        BY
+    Y1                 0.834       0.024      0.000       0.783       0.875      *
+    Y2                 0.940       0.018      0.000       0.900       0.970      *
+    Y3                 0.915       0.019      0.000       0.874       0.947      *
+
+ Intercepts
+    Y1                 1.363       0.103      0.000       1.166       1.572      *
+    Y2                 1.364       0.107      0.000       1.153       1.570      *
+    Y3                 1.281       0.102      0.000       1.083       1.486      *
+
+ Variances
+    Y                  1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    Y1                 0.305       0.039      0.000       0.234       0.386      *
+    Y2                 0.117       0.033      0.000       0.059       0.190      *
+    Y3                 0.162       0.034      0.000       0.102       0.236      *
+
+
+R-SQUARE
+
+Between Level
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    Y1                 0.695       0.039      0.000       0.613       0.766
+    Y2                 0.883       0.033      0.000       0.810       0.941
+    Y3                 0.838       0.034      0.000       0.764       0.898
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION FOR WITHIN
+
+
+           NU
+              Y1            Y2            Y3
+              ________      ________      ________
+                    0             0             0
+
+
+           THETA
+              Y1            Y2            Y3
+              ________      ________      ________
+ Y1                 1
+ Y2                 0             2
+ Y3                 0             0             3
+
+
+     PARAMETER SPECIFICATION FOR BETWEEN
+
+
+           NU
+              Y1            Y2            Y3
+              ________      ________      ________
+                    4             5             6
+
+
+           LAMBDA
+              Y
+              ________
+ Y1                 0
+ Y2                 0
+ Y3                 0
+
+
+           THETA
+              Y1            Y2            Y3
+              ________      ________      ________
+ Y1                 7
+ Y2                 0             8
+ Y3                 0             0             9
+
+
+           ALPHA
+              Y
+              ________
+                    0
+
+
+           BETA
+              Y
+              ________
+ Y                  0
+
+
+           PSI
+              Y
+              ________
+ Y                 10
+
+
+     PARAMETER SPECIFICATION FOR THE ADDITIONAL PARAMETERS
+
+
+           NEW/ADDITIONAL PARAMETERS
+              MEASURE1      BURST1        PERSON1       MEASURE2      BURST2
+              ________      ________      ________      ________      ________
+                   11            12            13            14            15
+
+
+           NEW/ADDITIONAL PARAMETERS
+              PERSON2       MEASURE3      BURST3        PERSON3
+              ________      ________      ________      ________
+                   16            17            18            19
+
+
+     STARTING VALUES FOR WITHIN
+
+
+           NU
+              Y1            Y2            Y3
+              ________      ________      ________
+                0.000         0.000         0.000
+
+
+           THETA
+              Y1            Y2            Y3
+              ________      ________      ________
+ Y1             0.014
+ Y2             0.000         0.013
+ Y3             0.000         0.000         0.013
+
+
+     STARTING VALUES FOR BETWEEN
+
+
+           NU
+              Y1            Y2            Y3
+              ________      ________      ________
+                0.120         0.107         0.105
+
+
+           LAMBDA
+              Y
+              ________
+ Y1             1.000
+ Y2             1.000
+ Y3             1.000
+
+
+           THETA
+              Y1            Y2            Y3
+              ________      ________      ________
+ Y1             0.014
+ Y2             0.000         0.013
+ Y3             0.000         0.000         0.013
+
+
+           ALPHA
+              Y
+              ________
+                0.000
+
+
+           BETA
+              Y
+              ________
+ Y              0.000
+
+
+           PSI
+              Y
+              ________
+ Y              1.000
+
+
+     STARTING VALUES FOR THE ADDITIONAL PARAMETERS
+
+
+           NEW/ADDITIONAL PARAMETERS
+              MEASURE1      BURST1        PERSON1       MEASURE2      BURST2
+              ________      ________      ________      ________      ________
+                0.500         0.500         0.500         0.500         0.500
+
+
+           NEW/ADDITIONAL PARAMETERS
+              PERSON2       MEASURE3      BURST3        PERSON3
+              ________      ________      ________      ________
+                0.500         0.500         0.500         0.500
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 2~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 3~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 8~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 9~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 10~IG(-1.000,0.000)         infinity            infinity            infinity
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     PROCESSOR    BSEED
+     1            0
+     2            285380
+     3            253358
+     4            93468
+     5            608496
+     6            903420
+     7            195873
+     8            462953
+     9            939021
+     10           127215
+     11           415931
+     12           533738
+     13           107446
+     14           399671
+     15           650371
+     16           27071
+     17           76974
+     18           68985
+     19           851945
+     20           637345
+     21           573096
+     22           902278
+     23           887676
+     24           372176
+     25           347515
+     26           207896
+     27           569131
+     28           364676
+     29           392418
+     30           366706
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              1.005               4
+     200              1.039               6
+     300              1.024               6
+     400              1.001               4
+     500              1.058               6
+     600              1.030               6
+     700              1.029               6
+     800              1.041               5
+     900              1.073               5
+     1000             1.020               6
+     1100             1.017               4
+     1200             1.021               4
+     1300             1.009               4
+     1400             1.005               6
+     1500             1.002               6
+     1600             1.001               6
+     1700             1.008               5
+     1800             1.009               5
+     1900             1.003               5
+     2000             1.002               5
+     2100             1.009               5
+     2200             1.015               5
+     2300             1.015               5
+     2400             1.015               5
+     2500             1.012               5
+     2600             1.006               5
+     2700             1.008               6
+     2800             1.009               5
+     2900             1.011               5
+     3000             1.006               4
+     3100             1.001               4
+     3200             1.003               6
+     3300             1.002               6
+     3400             1.000               1
+     3500             1.001               5
+     3600             1.001               5
+     3700             1.000               5
+     3800             1.000               1
+     3900             1.000               1
+     4000             1.001               5
+     4100             1.002               5
+     4200             1.003               5
+     4300             1.003               5
+     4400             1.002               5
+     4500             1.001               5
+     4600             1.001               5
+     4700             1.001               4
+     4800             1.002               4
+     4900             1.003               4
+     5000             1.003               4
+     5100             1.003               4
+     5200             1.003               4
+     5300             1.002               4
+     5400             1.002               4
+     5500             1.005               4
+     5600             1.006               4
+     5700             1.006               4
+     5800             1.008               4
+     5900             1.006               4
+     6000             1.003               4
+     6100             1.001               4
+     6200             1.000               4
+     6300             1.001               4
+     6400             1.000               4
+     6500             1.000               4
+     6600             1.000               1
+     6700             1.000               6
+     6800             1.000               6
+     6900             1.000               6
+     7000             1.001               6
+     7100             1.001               6
+     7200             1.000               6
+     7300             1.001               6
+     7400             1.001               6
+     7500             1.002               6
+     7600             1.002               6
+     7700             1.002               6
+     7800             1.002               6
+     7900             1.002               6
+     8000             1.004               6
+     8100             1.004               6
+     8200             1.003               6
+     8300             1.003               6
+     8400             1.003               6
+     8500             1.002               6
+     8600             1.001               6
+     8700             1.001               6
+     8800             1.001               6
+     8900             1.001               6
+     9000             1.001               6
+     9100             1.000               6
+     9200             1.000               6
+     9300             1.001               6
+     9400             1.001               6
+     9500             1.002               6
+     9600             1.002               6
+     9700             1.002               6
+     9800             1.002               4
+     9900             1.001               6
+     10000            1.002               4
+
+
+PLOT INFORMATION
+
+The following plots are available:
+
+  Histograms (sample values)
+  Scatterplots (sample values)
+  Between-level histograms (sample values, sample means/variances)
+  Between-level scatterplots (sample values, sample means/variances)
+  Bayesian posterior parameter distributions
+  Bayesian posterior parameter trace plots
+  Bayesian autocorrelation plots
+  Bayesian posterior predictive checking scatterplots
+  Bayesian posterior predictive checking distribution plots
+
+     Beginning Time:  09:56:16
+        Ending Time:  09:59:48
+       Elapsed Time:  00:03:32
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2024 Muthen & Muthen
