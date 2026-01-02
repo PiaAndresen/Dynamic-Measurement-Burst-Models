@@ -18,6 +18,8 @@ website:
         file: index.qmd
 #      - text: "Data Preparation"
 #        file: data_prep.qmd
+      - text: "Data Pre-Processing"
+        file: data.qmd
       - text: "Variance Decomposition"
         file: variance_decomposition.qmd
       - text: "Model 1: Saturated Network Models of Process Features"
@@ -27,7 +29,7 @@ website:
 
 format:
   html:
-    theme:
+    theme: 
       light: minty
       dark: darkly
     css: styles.css

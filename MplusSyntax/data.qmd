@@ -2,17 +2,28 @@
 title: "Data Pre-Processing"
 format: html
 editor: visual
+execute: 
+  output: true
+  echo: true
+  message: false
 ---
 
 Here, basic steps to transform intensive longitudinal data into the format needed for the DMBM are explained. For illustrative purposes, we simulate a data set below.
 
 ```{r}
+#| include: false
+########## Download needed packages
 library(dplyr)
 library(tidyr)
 library(lubridate)
-
+#########
 set.seed(1)
 
+```
+
+## Simulate toy example
+
+```{r}
 # ============================================================
 # 1) SIMULATE "LONG" measurement-burst data (toy example)
 #    - 6 participants
@@ -57,7 +68,6 @@ df_long <- expand_grid(
   select(UUID, W, t, Date_Time, confidence, depression)
 
 df_long
-
 ```
 
 In this toy example, we see nested data in long format: Measurment occasions $t$ are nested within measurement bursts $W$ which are nested in persons $UUID$.
@@ -70,11 +80,14 @@ To process these data for the DMBM two steps need to be completed:
 
 Below both steps are explained.
 
-# Data Transformation 
+# Data Transformation
 
-Here, we transform the data from above into a wide format in which bursts /waves are displayed as separate columns.
+Here, we transform the data from above into a wide format in which bursts/waves are displayed as separate columns.
+
+## Long to semi-wide format
 
 ```{r}
+#####################################################################################################################
 df_long <- df_long %>%
   group_by(UUID, W) %>%
   arrange(Date_Time, .by_group = TRUE) %>%
@@ -94,6 +107,8 @@ df_wide <- df_long %>%
 
 df_wide
 
+#####################################################################################################################
+
 ```
 
 # Adding `TINTERVAL` to data
@@ -104,7 +119,11 @@ For measurement burst data, we thus need a continuous time interval across all b
 
 Below, we illustrate how this can be done.
 
+## Adding and adjusting time interval
+
 ```{r}
+#####################################################################################################################
+
 df_time <- df_long %>%
   group_by(UUID) %>%
   arrange(Date_Time, .by_group = TRUE) %>%
