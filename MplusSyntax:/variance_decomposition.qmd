@@ -4,7 +4,7 @@ format: html
 editor: visual
 ---
 
-Here we explain how to set up the basic syntax for variance decompositon in Mplus, as explained in Andresen et al. (in prep) Section, 3.2.1.
+Here we explain how to set up the basic syntax for variance decomposition in Mplus, as explained in Andresen et al. (in prep) Section, 3.2.1.
 
 ## Input Instructions
 
@@ -28,7 +28,7 @@ VARIABLE: NAMES = ID hour Y1 Y2 Y3;
 
 ## The MODEL command
 
-In the `MODEL` command, the main model for variance decompositioon is specified. Here, we specify the micro-level variance in the `%WITHIN%` part and the meso- and macro-level variance in the `%BETWEEN%` part of the model.
+In the `MODEL` command, the main model for variance decomposition is specified. Here, we specify the micro-level variance in the `%WITHIN%` part and the meso- and macro-level variance in the `%BETWEEN%` part of the model.
 
 ``` default
 MODEL:
@@ -74,5 +74,4 @@ MODEL CONSTRAINT:
           
 OUTPUT:   TECH1 TECH8 STDYX FSCOMPARISON;
 PLOT:     TYPE = PLOT3;
-
 ```

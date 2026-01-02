@@ -1,0 +1,179 @@
+---
+title: "Data Pre-Processing"
+format: html
+editor: visual
+---
+
+Here, basic steps to transform intensive longitudinal data into the format needed for the DMBM are explained. For illustrative purposes, we simulate a data set below.
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(lubridate)
+
+set.seed(1)
+
+# ============================================================
+# 1) SIMULATE "LONG" measurement-burst data (toy example)
+#    - 6 participants
+#    - 3 bursts (W1/W2/W3)
+#    - 5 ESM prompts per burst
+#    - 2 example variables: confidence, depression
+# ============================================================
+
+n_id    <- 6
+n_waves <- 3
+k_prompts <- 5
+
+ids <- sprintf("P%02d", 1:n_id)
+
+# We'll create a baseline time for wave 1, then insert big gaps to wave 2 & 3.
+# (This mimics real burst designs with long breaks between waves.)
+wave_start <- tibble(
+  W = 1:3,
+  wave_gap_days = c(0, 30, 60)  # big gaps between waves
+)
+
+df_long <- expand_grid(
+  UUID = ids,
+  W    = 1:3,
+  t    = 1:k_prompts
+) %>%
+  left_join(wave_start, by = "W") %>%
+  group_by(UUID, W) %>%
+  mutate(
+    # Create actual datetimes: wave start + within-wave prompt spacing (e.g., every 3 hours)
+    Date_Time = ymd_hms("2020-01-01 08:00:00", tz = "Europe/Paris") +
+      days(wave_gap_days[1]) + hours(3 * (t - 1)) +
+      # small person-specific offset so people don't all start at identical times
+      minutes(sample(0:20, 1))
+  ) %>%
+  ungroup() %>%
+  mutate(
+    # Example outcomes (toy numbers)
+    confidence = round(rnorm(n(), mean = 2.5 + 0.3 * W, sd = 0.8), 2),
+    depression = round(rnorm(n(), mean = 4.0 - 0.2 * W, sd = 0.9), 2)
+  ) %>%
+  select(UUID, W, t, Date_Time, confidence, depression)
+
+df_long
+
+```
+
+In this toy example, we see nested data in long format: Measurment occasions $t$ are nested within measurement bursts $W$ which are nested in persons $UUID$.
+
+To process these data for the DMBM two steps need to be completed:
+
+1.  The data needs to be transformed into a semi-wide format in which bursts $W$ are displayed in separate columns per variable
+
+2.  A time interval variable needs to be added to the data
+
+Below both steps are explained.
+
+# Data Transformation 
+
+Here, we transform the data from above into a wide format in which bursts /waves are displayed as separate columns.
+
+```{r}
+df_long <- df_long %>%
+  group_by(UUID, W) %>%
+  arrange(Date_Time, .by_group = TRUE) %>%
+  mutate(t = row_number()) %>%   # 1..k per person×wave
+  ungroup()
+
+# transform to wide format:
+
+df_wide <- df_long %>%
+  # choose the variables that should become wave-specific columns
+  pivot_wider(
+    id_cols = c(UUID, t, Date_Time),
+    names_from = W,
+    values_from = c(confidence, depression),
+    names_glue = "{.value}_W{W}"
+  )
+
+df_wide
+
+```
+
+# Adding `TINTERVAL` to data
+
+Mplus requires an interval variable to process intensive longitudinal data. The basic idea is that a new time variable is created, which does not count the number of measurement, but the time since the start point of the study, for each measurement. For example, if measurement $t=1$ was taken at 10:00am, and measurement $t=2$ was taken at 10:38am, we transform these measures using their time stamp. Accordingly, $t=1$ become $0$, the starting point of our study, and $t=2$ becomes $38$. This explains the temporal precedent between data points to Mplus.
+
+For measurement burst data, we thus need a continuous time interval across all bursts/waves. However, as the breaks between bursts can be quite long, the time interval between the last measurement of the previous wave and the first measurement of the subsequent wave can be extremely long (e.g., 30 days contain 43.200 minutes). To avoid excessive computational needs, it is advisable to adjust the time interval variable between bursts, such that the temporal precedent is maintained.
+
+Below, we illustrate how this can be done.
+
+```{r}
+df_time <- df_long %>%
+  group_by(UUID) %>%
+  arrange(Date_Time, .by_group = TRUE) %>%
+  mutate(
+    seconds_since_start_pp = as.numeric(Date_Time - first(Date_Time), units = "secs"),
+    hours_since_start_pp   = seconds_since_start_pp / 3600
+  ) %>%
+  ungroup()
+
+df_time %>% select(UUID, W, t, Date_Time, hours_since_start_pp) %>% head(10)
+
+
+#adjust gaps between waves:#
+# 1) Get per-person wave boundaries (first/last Date_Time per wave)
+pp_bounds <- df_long %>%
+  group_by(UUID, W) %>%
+  summarise(
+    W_first = min(Date_Time),
+    W_last  = max(Date_Time),
+    .groups = "drop"
+  ) %>%
+  pivot_wider(
+    id_cols = UUID,
+    names_from = W,
+    values_from = c(W_first, W_last),
+    names_glue = "W{W}_{.value}"
+  )
+
+pp_bounds
+
+
+# 2) Join bounds back to each row, compute adjusted seconds
+df_adj <- df_time %>%
+  left_join(pp_bounds, by = "UUID") %>%
+  mutate(
+    seconds_since_start_adjusted = case_when(
+      W == 1 ~ seconds_since_start_pp,
+      
+      # Wave 2 starts 24h after Wave 1 ended (for that participant)
+      W == 2 ~ {
+        gap_W1_W2 <- as.numeric(W2_W_first - W1_W_last, units = "secs")
+        seconds_since_start_pp - gap_W1_W2 + 86400
+      },
+      
+      # Wave 3 starts 24h after Wave 2 ended
+      W == 3 ~ {
+        gap_W1_W2 <- as.numeric(W2_W_first - W1_W_last, units = "secs")
+        gap_W2_W3 <- as.numeric(W3_W_first - W2_W_last, units = "secs")
+        
+        # start from pp time, compress W2->W3 gap to 24h, and keep W2 positioned 24h after W1
+        seconds_since_start_pp - gap_W2_W3 + 86400 - gap_W1_W2 + 86400
+      }
+    ),
+    tinterval_h = round(seconds_since_start_adjusted / 3600, 2) # transform to hours
+  )
+
+df_adj %>% select(UUID,Date_Time, W, t, hours_since_start_pp, tinterval_h) %>% head(12)
+
+
+adjusted_df <- df_adj %>%
+  # example: keep ID, wave, adjusted time, and wave-specific outcomes
+  pivot_wider(
+    id_cols = c(UUID,Date_Time, t, tinterval_h),
+    names_from = W,
+    values_from = c(confidence, depression),
+    names_glue = "{.value}_W{W}"
+  ) %>%
+  # drop rows where ALL outcome columns are NA
+  filter(if_any(starts_with("confidence_") | starts_with("depression_"), ~ !is.na(.x)))
+
+adjusted_df 
+```

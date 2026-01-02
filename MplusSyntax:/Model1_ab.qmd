@@ -3,6 +3,7 @@ title: "Model 1: Saturated Network Models"
 format: html
 editor: visual
 ---
+
 On this page, we present the Mplus model syntax used to specify saturated network models of process features, as introduced in Andresen et. al. (in prep). This syntax corresponds with models 1a and 1b, as presented in section 3.3.1 of the paper.
 
 Please use the tabs below to navigate between syntax of model 1a (excluding random residual variance), and syntax of model 1b (including random residual variance).
