@@ -4,6 +4,7 @@ format: html
 editor: visual
 #bibliography: reference.bib
 ---
+
 On this page, we present the Mplus model syntax used to specify the DMBM, as introduced in Andresen et. al. (in prep). This syntax corresponds with models 2a and 2b, as presented in section 3.3.2 of the paper.
 
 # Specifying the DMBM in four Steps
@@ -12,12 +13,9 @@ We can specify the DMBM in four steps.
 
 1.  Specify the *within* part, where we specify the micro-level model for each burst separately. Per burst, we specify autoregressive parameters `phi1,  phi2, phi3,...; phiBurst`. Optionally, we can additionally specify the random residual variances (`rv1,rv2,rv3...;`) per burst, which can then be further modeled as the log residual variance (i.e., the compound of reactivity and exposure to shocks) at the `%BETWEEN%` level.
 
-
 2.  Specify the *between* part, where the random intercepts are specified. It is specified using the `BY` command, `RI_Y BY Y1@1 Y2@1 Y#@1...;`, where `@1` fixes the factor loading to one. This process is repeated for every process feature modeled at the meso- and macro-level. Furthermore, for each feature at each burst, we define the burst- and person-specific deviations from the person's random intercept (i.e., the within-person components *WC*). For example, for the mean at burst 1, we write: `WCY1 BY Y1; Y1@0.001;` which defines the within-person component for the mean and fixes the prior for residual variance of the observed mean `Y1` to (almost) zero.
 
-
 3.  Specify the *meso-level dynamics* between burst- and person-specific deviations from the person's random intercept of that feature at each burst, using `WCY2 WCY3 ON WCY1 WCY2; ...`, to define autoregressive effects, and `WCY2 WCY3 ON WCPHI1 WCPHI2; ...` to define cross-lagged effects.
-
 
 4.  Specify relevant *covariances* and residual covariances at the meso-level. Here, we constrain residual covariances to be equal at all bursts (e.g., `WCY2 WITH WCRV2 (rc1); WCY3 WITH WCRV3 (rc1);`) to simplify the model.
 
@@ -56,7 +54,7 @@ ANALYSIS:
 MODEL:
 
 %WITHIN%
-   	 
+     
 ! PER BURST: SPECIFY AR(1) PROCESS WITH A RANDOM AUTOREGRESSION
 
           phi1 | Y1 ON Y1&1;
@@ -64,7 +62,7 @@ MODEL:
           phi3 | Y3 ON Y3&1;
 
 ! SET COVARIANCES BETWEEN BURST-SPECIFIC OBSERVATIONS TO ZERO (NOT DEFAULT)
-  	      Y1 Y2 WITH Y3@0;
+          Y1 Y2 WITH Y3@0;
           Y1 WITH Y2@0;
 ```
 
@@ -98,7 +96,7 @@ ANALYSIS:
 MODEL:
 
 %WITHIN%
-   	 
+     
 ! PER BURST: SPECIFY AR(1) PROCESS WITH A RANDOM AUTOREGRESSION
 
           phi1 | Y1 ON Y1&1;
@@ -114,12 +112,10 @@ MODEL:
 
 # Step 2: Specify the `BETWEEN` part of the DBMB
 
-
 ::: panel-tabset
 ## %BETWEEN% Level Model 2a
-The syntax for specifying the first part of the `BETWEEN` level of the DMBM excluding random residual variances (i.e., model 2a) is given below.
-Here, we define random intercepts per process feature, and subsequently define per burst within-person components for each feature.
 
+The syntax for specifying the first part of the `BETWEEN` level of the DMBM excluding random residual variances (i.e., model 2a) is given below. Here, we define random intercepts per process feature, and subsequently define per burst within-person components for each feature.
 
 ``` default
 %BETWEEN%
@@ -155,13 +151,11 @@ Here, we define random intercepts per process feature, and subsequently define p
 
             WCPHI1 WITH phi@0;
             WCPHI1 WITH Y@0;
-
 ```
 
 ## %BETWEEN% Level Model 2b
 
-The syntax for specifying the first part of the `BETWEEN` level of the DMBM including random residual variances (i.e., model 2b) is given below.
-Here, we define random intercepts per process feature, and subsequently define per burst within-person components for each feature.
+The syntax for specifying the first part of the `BETWEEN` level of the DMBM including random residual variances (i.e., model 2b) is given below. Here, we define random intercepts per process feature, and subsequently define per burst within-person components for each feature.
 
 ``` default
 ! CREATE RANDOM INTERCEPTS FOR MEANS (Y), INERTIAS (PHI) AND RESIDUAL VARIANCE (RV)
@@ -209,13 +203,13 @@ Here, we define random intercepts per process feature, and subsequently define p
 
 # Step 3: Specifying the Meso-level dynamics
 
-
 ::: panel-tabset
 ## The Meso-level dynamics in Model 2a
 
-The syntax for specifying the meso-level *dyanmics* as part of the `BETWEEN` level of the DMBM excluding random residual variances (i.e., model 2a) is given below.
+The syntax for specifying the meso-level *dynamics* as part of the `BETWEEN` level of the DMBM excluding random residual variances (i.e., model 2a) is given below.
 
 Here, we use the `PON` (" pairwise on") statement to define autoregressive (*AR*) and cross-lagged (*CL*) effects.
+
 ``` default
 ! SPECIFY THE AUTOREGRESSIONS FOR THE WCs AND CONSTRAIN THESE TO BE INVARIANT OVER TIME
 
@@ -237,9 +231,10 @@ Here, we use the `PON` (" pairwise on") statement to define autoregressive (*AR*
 
 ## The Meso-level dynamics in Model 2b
 
-The syntax for specifying the meso-level *dyanmics* as part of the `BETWEEN` level of the DMBM including random residual variances (i.e., model 2b) is given below.
+The syntax for specifying the meso-level *dynamics* as part of the `BETWEEN` level of the DMBM including random residual variances (i.e., model 2b) is given below.
 
 Here, we use the `PON` (" pairwise on") statement to define autoregressive (*AR*) and cross-lagged (*CL*) effects.
+
 ``` default
 ! SPECIFY THE AUTOREGRESSIONS FOR THE WCs AND CONSTRAIN THESE TO BE INVARIANT OVER TIME
 
@@ -281,7 +276,7 @@ Here, we use the `PON` (" pairwise on") statement to define autoregressive (*AR*
 
 The syntax for specifying the meso-level *(residual) covariances* as part of the `BETWEEN` level of the DMBM excluding random residual variances (i.e., model 2a) is given below.
 
-Here, we use labeling to put contraints on the residual covariances (`(rc1)`) and the residual variances (`(rv1)`). Specifically, we constrain residual covariances to be time invariant, that is, equal at bursts 2 and 3 (e.g., ` WCY2 WITH WCPHI2 (rc1); WCY3 WITH WCPHI3 (rc1);`), a setting which in Mplus v8.11 additionally requires to constrain the residual variances of each feature to be time invariant (e.g., `WCY2 WCY3 (rv1);`).
+Here, we use labeling to put constraints on the residual covariances (`(rc1)`) and the residual variances (`(rv1)`). Specifically, we constrain residual covariances to be time invariant, that is, equal at bursts 2 and 3 (e.g., `WCY2 WITH WCPHI2 (rc1); WCY3 WITH WCPHI3 (rc1);`), a setting which in Mplus v8.11 additionally requires to constrain the residual variances of each feature to be time invariant (e.g., `WCY2 WCY3 (rv1);`).
 
 ``` default
 ! ESTIMATING COVARIANCE OF THE WITHIN-COMPONENTS AT THE FIRST BURST
@@ -292,7 +287,7 @@ Here, we use labeling to put contraints on the residual covariances (`(rc1)`) an
 ! CONSTRAIN THESE TO BE INVARIANT OVER WAVES
 
             WCY2 WITH WCPHI2 (rc1);
-    	      WCY3 WITH WCPHI3 (rc1);
+              WCY3 WITH WCPHI3 (rc1);
 
 
 ! CONSTRAIN RESIDUAL VARIANCES OF THE WCs TO BE INVARIANT OVER BURSTS
@@ -313,8 +308,7 @@ PLOT:
 
 The syntax for specifying the meso-level *(residual) covariances* as part of the `BETWEEN` level of the DMBM including random residual variances (i.e., model 2b) is given below.
 
-Here, we use labeling to put contraints on the residual covariances (`(rc1)`) and the residual variances (`(rv1)`). Specifically, we constrain residual covariances to be time invariant, that is, equal at bursts 2 and 3 (e.g., ` WCY2 WITH WCPHI2 (rc1); WCY3 WITH WCPHI3 (rc1);`), a setting which in Mplus v8.11 additionally requires to constrain the residual variances of each feature to be time invariant (e.g., `WCY2 WCY3 (rv1);`).
-
+Here, we use labeling to put constraints on the residual covariances (`(rc1)`) and the residual variances (`(rv1)`). Specifically, we constrain residual covariances to be time invariant, that is, equal at bursts 2 and 3 (e.g., `WCY2 WITH WCPHI2 (rc1); WCY3 WITH WCPHI3 (rc1);`), a setting which in Mplus v8.11 additionally requires to constrain the residual variances of each feature to be time invariant (e.g., `WCY2 WCY3 (rv1);`).
 
 ``` default
 ! ESTIMATE COVARIANCES OF THE WITHIN COMPONENTS AT THE FIRST BURST
@@ -327,10 +321,10 @@ Here, we use labeling to put contraints on the residual covariances (`(rc1)`) an
 ! CONSTRAIN THESE TO BE INVARIANT OVER WAVES
 
             WCY2 WITH WCRV2 (rc1);
-  	        WCY3 WITH WCRV3 (rc1);
+            WCY3 WITH WCRV3 (rc1);
 
             WCY2 WITH WCPHI2 (rc2);
-    	      WCY3 WITH WCPHI3 (rc2);
+              WCY3 WITH WCPHI3 (rc2);
 
             WCPHI2 WITH WCRV2 (rc3);
             WCPHI3 WITH WCRV3 (rc3);
