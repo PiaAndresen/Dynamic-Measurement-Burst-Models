@@ -487,8 +487,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="data-transformation" class="level1">
 <h1>Data Transformation</h1>
 <p>To prepare the data for the DMBM, we first reshape the dataset into a <strong>semi-wide format</strong>.</p>
-<p>In this format: - intensive longitudinal observations remain in <strong>long format</strong> - burst-level variables appear as <strong>separate columns per burst</strong></p>
-<p>This allows the model to simultaneously estimate: - within-burst dynamics - between-burst dynamics of process features.</p>
+<p>In this format:</p>
+<ul>
+<li><p>intensive longitudinal observations remain in <strong>long format</strong></p></li>
+<li><p>burst-level variables appear as <strong>separate columns per burst</strong></p></li>
+</ul>
+<p>This allows the model to simultaneously estimate:</p>
+<ul>
+<li><p>within-burst dynamics</p></li>
+<li><p>between-burst dynamics of process features.</p></li>
+</ul>
 <p><strong>Step: Convert bursts to columns</strong></p>
 <p>Each burst receives its own set of variables (e.g., <code>confidence_W1</code>, <code>confidence_W2</code>, <code>confidence_W3</code>).</p>
 <div class="cell">
@@ -554,8 +562,16 @@ For example, a 30-day gap corresponds to <strong>43,200 minutes</strong>.</p>
 <section id="key-idea" class="level2">
 <h2 class="anchored" data-anchor-id="key-idea">Key idea</h2>
 <p><strong>We only model dynamics within bursts.</strong></p>
-<p>Therefore: - long gaps <strong>between bursts do not carry meaningful information</strong> - compressing them <strong>does not affect estimation</strong></p>
-<p>We therefore: - keep the temporal ordering within bursts intact - replace large inter-burst gaps with a small fixed interval (e.g., 24 hours).</p>
+<p>Therefore:</p>
+<ul>
+<li><p>long gaps <strong>between bursts do not carry meaningful information</strong> -</p></li>
+<li><p>compressing them <strong>does not affect estimation</strong></p></li>
+</ul>
+<p>We therefore:</p>
+<ul>
+<li><p>keep the temporal ordering within bursts intact</p></li>
+<li><p>replace large inter-burst gaps with a small fixed interval (e.g., 24 hours).</p></li>
+</ul>
 <p>This preserves the temporal structure needed for estimation while avoiding unnecessary computational burden.</p>
 <p>This can be done in 3 steps:</p>
 <section id="step-1-create-continuous-time-variable" class="level3">
@@ -677,7 +693,12 @@ For example, a 30-day gap corresponds to <strong>43,200 minutes</strong>.</p>
 </section>
 <section id="final-dataset" class="level3">
 <h3 class="anchored" data-anchor-id="final-dataset">Final dataset</h3>
-<p>The resulting dataset: - preserves within-burst timing - removes large inter-burst gaps - is ready for DSEM estimation in Mplus.</p>
+<p>The resulting dataset:</p>
+<ul>
+<li><p>preserves within-burst timing</p></li>
+<li><p>removes large inter-burst gaps</p></li>
+<li><p>is ready for DSEM estimation in Mplus.</p></li>
+</ul>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>adjusted_df <span class="ot">&lt;-</span> df_adj <span class="sc">%&gt;%</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># example: keep ID, wave, adjusted time, and wave-specific outcomes</span></span>
