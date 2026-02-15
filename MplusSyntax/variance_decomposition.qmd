@@ -34,20 +34,27 @@ In the `MODEL` command, the main model for variance decomposition is specified. 
 MODEL:
 
 %WITHIN%
-          !Y1-Y3 WITH Y1-Y3@0;    ! by default these are zero
-          
-          ! defining micro-level variance
+
+          ! Y1–Y3 are the observed variables (e.g., depression or confidence) within bursts per person.
+          ! In the paper, the observed variable is denoted as Y(burst number)_it.
+          !
+          ! Here, the labels (micro1–micro3) define the micro-level variance per burst.
+
           Y1-Y3 (micro1-micro3);
 
+
 %BETWEEN%
-          !Creating a random intercept for means of Y, ie. the RI for mood
-          M BY Y1-Y3@1;
+          ! NOTE ON NOTATION:
+          ! In the manuscript, burst-level process features are denoted M (mean),
+          ! but in Mplus the same variable names must be used across levels.
+          ! Therefore, Y1–Y3 correspond to burst-specific means (M1–M3 in the paper),
+          ! and the latent factor Y corresponds to the macro-level mean (M_i).
 
-          !defining meso-level variance
-          Y1-Y3 (meso1-meso3);
+          Y BY Y1-Y3@1;      ! macro-level mean (M_i) defined from M1_i–M3_i
 
-          ! defining macro-level between macro variance
-          Y (macro);
+          Y1-Y3 (meso1-meso3);   ! meso-level variance: burst-to-burst deviations in M
+
+          Y (macro);         ! macro-level variance in M_i
 ```
 
 ## The MODEL CONSTRAINT command

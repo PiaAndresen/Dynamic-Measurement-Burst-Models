@@ -23,9 +23,11 @@ set.seed(1)
 
 ## Simulate toy example
 
+As the manuscript uses 3rd party data we are not permitted to share publicly, we will simulate example data below.
+
 ```{r}
 # ============================================================
-# 1) SIMULATE "LONG" measurement-burst data (toy example)
+# 1) SIMULATE "LONG FORMAT" measurement-burst data (toy example)
 #    - 6 participants
 #    - 3 bursts (W1/W2/W3)
 #    - 5 ESM prompts per burst
@@ -39,7 +41,8 @@ k_prompts <- 5
 ids <- sprintf("P%02d", 1:n_id)
 
 # We'll create a baseline time for wave 1, then insert big gaps to wave 2 & 3.
-# (This mimics real burst designs with long breaks between waves.)
+# This mimics real burst designs with long breaks between waves. In this case, we simulate 
+# 30 day interval between waves.
 wave_start <- tibble(
   W = 1:3,
   wave_gap_days = c(0, 30, 60)  # big gaps between waves

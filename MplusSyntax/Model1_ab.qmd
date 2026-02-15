@@ -44,31 +44,39 @@ MODEL:
   
 %WITHIN%
 
-! PER BURST: SPECIFY AR(1) PROCESS WITH A RANDOM AUTOREGRESSION
+! ---------------------------------------------------------
+! WITHIN-PERSON (micro-level) model
+! Y1–Y3 = burst-specific means (M1–M3 in the paper)
+! ---------------------------------------------------------
 
-            phi1 | Y1 ON Y1&1;
-            phi2 | Y2 ON Y2&1;
-            phi3 | Y3 ON Y3&1;
+! PER BURST: AR(1) PROCESS WITH RANDOM AUTOREGRESSION
+! A1–A3 correspond to autoregressive effects in the manuscript
+! Note that here we can choose the name of the AR effect freely 
 
-! SET COVARIANCES BETWEEN BURST-SPECIFIC OBSERVATIONS TO ZERO (NOT DEFAULT)
+            A1 | Y1 ON Y1&1;   ! A1
+            A2 | Y2 ON Y2&1;   ! A2
+            A3 | Y3 ON Y3&1;   ! A3
+
+! SET WITHIN-BURST COVARIANCES TO ZERO
             Y1-Y3 WITH Y1-Y3@0;
 
 
 %BETWEEN%
 
-! ASK FOR AN UNCONSTRAINED COVARIANCE MATRIX OF PROCESS FEATURES
+! ---------------------------------------------------------
+! NOTE ON NOTATION:
+! Y1–Y3 = burst-specific means (M1–M3)
+! A1–A3 = autoregressive effects (A1–A3)
+! ---------------------------------------------------------
 
-            Y1-Y3 phi1-phi3 WITH
-            Y1-Y3 phi1-phi3;
+! Unconstrained covariance matrix of process features (M and A)
+! This returns this saturated network model
 
-OUTPUT:
-            TECH1 TECH3 TECH8 STDYX FSCOMPARISON;
-PLOT:
-            TYPE = PLOT3;
-            FACTOR =All;
+            Y1-Y3 A1-A3 WITH
+            Y1-Y3 A1-A3;
 ```
 
-## Saturated Network Model 2b
+## Saturated Network Model 1b
 
 The syntax for specifying Model 1b is given below.
 
@@ -103,30 +111,36 @@ MODEL:
   
 %WITHIN%
 
-! PER BURST: SPECIFY AR(1) PROCESS WITH A RANDOM AUTOREGRESSION
+! ---------------------------------------------------------
+! WITHIN-PERSON (micro-level) model
+! ---------------------------------------------------------
 
-            phi1 | Y1 ON Y1&1;
-            phi2 | Y2 ON Y2&1;
-            phi3 | Y3 ON Y3&1;
+! RANDOM AUTOREGRESSION (A)
 
-! PER BURST: SPECIFY RANDOM RESIDUAL VARIANCES (WILL BE LOG RESIDUAL VARIANCES AT BETW
+            A1 | Y1 ON Y1&1;   ! A1
+            A2 | Y2 ON Y2&1;   ! A2
+            A3 | Y3 ON Y3&1;   ! A3
 
-            rv1 | Y1;
-            rv2 | Y2;
-            rv3 | Y3;
+
+! RANDOM RESIDUAL VARIANCE/ COMPOUND (C)
+
+            C1 | Y1;           ! C1
+            C2 | Y2;           ! C2
+            C3 | Y3;           ! C3
 
 
 %BETWEEN%
 
-! ASK FOR AN UNCONSTRAINED COVARIANCE MATRIX OF PROCESS FEATURES
+! ---------------------------------------------------------
+! NOTE ON NOTATION:
+! Y1–Y3 = burst-specific means (M1–M3)
+! A1–A3 = autoregressive effects
+! C1–C3 = compound / innovation variances
+! ---------------------------------------------------------
 
-            Y1-Y3 phi1-phi3 rv1-rv3 WITH
-            Y1-Y3 phi1-phi3 rv1-rv3;
+! Unconstrained covariance matrix of process features (M, A, C)
 
-OUTPUT:
-            TECH1 TECH3 TECH8 STDYX FSCOMPARISON;
-PLOT:
-            TYPE = PLOT3;
-            FACTOR =All;
+            Y1-Y3 A1-A3 C1-C3 WITH
+            Y1-Y3 A1-A3 C1-C3;
 ```
 :::
