@@ -4,6 +4,7 @@ project:
 
 website:
   title: "Modeling Measurement Burst Data in Mplus"
+  site-url: "https://piaandresen.github.io/Dynamic-Measurement-Burst-Models/"
   navbar:
     search: true
     page-navigation: true

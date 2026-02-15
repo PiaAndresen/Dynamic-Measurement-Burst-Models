@@ -21,7 +21,20 @@ set.seed(1)
 
 ```
 
-## Simulate toy example
+Here, we demonstrate how measurement-burst data can be prepared for the Dynamic Measurement-Burst Model (DMBM). Because the empirical data used in the manuscript cannot be shared publicly, we simulate a small example dataset.
+
+The goal of this section is to illustrate **two key preprocessing steps**:
+
+**1. Transform burst data from long format into a semi-wide format**  
+**2. Construct and adjust the `TINTERVAL` variable required by Mplus**
+
+These steps ensure that:
+- **within-burst dynamics** can be modeled in long format
+- **between-burst dynamics of process features** can be modeled in wide format
+- Mplus does not waste computation time interpreting large gaps between bursts.
+
+
+# Simulate toy example
 
 As the manuscript uses 3rd party data we are not permitted to share publicly, we will simulate example data below.
 
@@ -73,21 +86,32 @@ df_long <- expand_grid(
 df_long
 ```
 
-In this toy example, we see nested data in long format: Measurment occasions $t$ are nested within measurement bursts $W$ which are nested in persons $UUID$.
+**Structure of measurement-burst data**
 
-To process these data for the DMBM two steps need to be completed:
+The simulated data illustrate the typical structure of measurement-burst designs:
 
-1.  The data needs to be transformed into a semi-wide format in which bursts $W$ are displayed in separate columns per variable
+- measurement occasions \( t \) nested within bursts \( W \)
+- bursts nested within persons \( UUID \)
 
-2.  A time interval variable needs to be added to the data
+Importantly, bursts are separated by **large time gaps** (e.g., 30 days), while observations **within bursts are closely spaced** (e.g., every 3 hours).
 
-Below both steps are explained.
+This distinction is crucial when constructing the `TINTERVAL` variable.
 
 # Data Transformation
 
-Here, we transform the data from above into a wide format in which bursts/waves are displayed as separate columns.
+To prepare the data for the DMBM, we first reshape the dataset into a **semi-wide format**.
 
-## Long to semi-wide format
+In this format:
+- intensive longitudinal observations remain in **long format**
+- burst-level variables appear as **separate columns per burst**
+
+This allows the model to simultaneously estimate:
+- within-burst dynamics
+- between-burst dynamics of process features.
+
+**Step: Convert bursts to columns**
+
+Each burst receives its own set of variables (e.g., `confidence_W1`, `confidence_W2`, `confidence_W3`).
 
 ```{r}
 #####################################################################################################################
@@ -114,15 +138,51 @@ df_wide
 
 ```
 
-# Adding `TINTERVAL` to data
+# Adding `TINTERVAL` to the data
 
-Mplus requires an interval variable to process intensive longitudinal data. The basic idea is that a new time variable is created, which does not count the number of measurement, but the time since the start point of the study, for each measurement. For example, if measurement $t=1$ was taken at 10:00am, and measurement $t=2$ was taken at 10:38am, we transform these measures using their time stamp. Accordingly, $t=1$ become $0$, the starting point of our study, and $t=2$ becomes $38$. This explains the temporal precedent between data points to Mplus.
+Dynamic models in Mplus require a **time-interval variable (`TINTERVAL`)** that represents elapsed time between observations.
 
-For measurement burst data, we thus need a continuous time interval across all bursts/waves. However, as the breaks between bursts can be quite long, the time interval between the last measurement of the previous wave and the first measurement of the subsequent wave can be extremely long (e.g., 30 days contain 43.200 minutes). To avoid excessive computational needs, it is advisable to adjust the time interval variable between bursts, such that the temporal precedent is maintained.
+Instead of counting measurement occasions, this variable encodes **continuous time since the first observation for each participant**.
 
-Below, we illustrate how this can be done.
+For example:
 
-## Adding and adjusting time interval
+- first observation → `0`
+- next observation 38 minutes later → `38`
+
+This allows Mplus to correctly interpret temporal precedence.
+
+---
+
+## Measurement-burst complication
+
+Measurement-burst data introduce a practical complication:
+
+The time gap between bursts can be extremely large.  
+For example, a 30-day gap corresponds to **43,200 minutes**.
+
+If left unchanged, Mplus interprets these large gaps literally and inserts many missing time points internally, which can dramatically slow estimation.
+
+---
+
+## Key idea
+
+**We only model dynamics within bursts.**
+
+Therefore:
+- long gaps **between bursts do not carry meaningful information**
+- compressing them **does not affect estimation**
+
+We therefore:
+- keep the temporal ordering within bursts intact
+- replace large inter-burst gaps with a small fixed interval (e.g., 24 hours).
+
+This preserves the temporal structure needed for estimation while avoiding unnecessary computational burden.
+
+This can be done in 3 steps:
+
+### Step 1 — Create continuous time variable
+
+We first compute elapsed time since each participant’s first observation.
 
 ```{r}
 #####################################################################################################################
@@ -138,7 +198,12 @@ df_time <- df_long %>%
 
 df_time %>% select(UUID, W, t, Date_Time, hours_since_start_pp) %>% head(10)
 
+```
 
+### Step 2 — Identify burst boundaries per participant
+
+We determine the first and last observation of each burst.
+```{r}
 #adjust gaps between waves:#
 # 1) Get per-person wave boundaries (first/last Date_Time per wave)
 pp_bounds <- df_long %>%
@@ -157,7 +222,11 @@ pp_bounds <- df_long %>%
 
 pp_bounds
 
+```
+### Step 3 — Compress gaps between bursts
 
+Large inter-burst gaps are replaced with a fixed interval (24 hours here).
+```{r}
 # 2) Join bounds back to each row, compute adjusted seconds
 df_adj <- df_time %>%
   left_join(pp_bounds, by = "UUID") %>%
@@ -184,8 +253,14 @@ df_adj <- df_time %>%
   )
 
 df_adj %>% select(UUID,Date_Time, W, t, hours_since_start_pp, tinterval_h) %>% head(12)
+```
+### Final dataset
 
-
+The resulting dataset:
+- preserves within-burst timing
+- removes large inter-burst gaps
+- is ready for DSEM estimation in Mplus.
+```{r}
 adjusted_df <- df_adj %>%
   # example: keep ID, wave, adjusted time, and wave-specific outcomes
   pivot_wider(

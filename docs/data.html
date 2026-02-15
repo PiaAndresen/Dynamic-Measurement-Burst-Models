@@ -108,35 +108,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -394,13 +365,17 @@ window.Quarto = {
    
   <ul>
   <li><a href="#simulate-toy-example" id="toc-simulate-toy-example" class="nav-link active" data-scroll-target="#simulate-toy-example">Simulate toy example</a></li>
-  <li><a href="#data-transformation" id="toc-data-transformation" class="nav-link" data-scroll-target="#data-transformation">Data Transformation</a>
+  <li><a href="#data-transformation" id="toc-data-transformation" class="nav-link" data-scroll-target="#data-transformation">Data Transformation</a></li>
+  <li><a href="#adding-tinterval-to-the-data" id="toc-adding-tinterval-to-the-data" class="nav-link" data-scroll-target="#adding-tinterval-to-the-data">Adding <code>TINTERVAL</code> to the data</a>
   <ul class="collapse">
-  <li><a href="#long-to-semi-wide-format" id="toc-long-to-semi-wide-format" class="nav-link" data-scroll-target="#long-to-semi-wide-format">Long to semi-wide format</a></li>
+  <li><a href="#measurement-burst-complication" id="toc-measurement-burst-complication" class="nav-link" data-scroll-target="#measurement-burst-complication">Measurement-burst complication</a></li>
+  <li><a href="#key-idea" id="toc-key-idea" class="nav-link" data-scroll-target="#key-idea">Key idea</a>
+  <ul class="collapse">
+  <li><a href="#step-1-create-continuous-time-variable" id="toc-step-1-create-continuous-time-variable" class="nav-link" data-scroll-target="#step-1-create-continuous-time-variable">Step 1 — Create continuous time variable</a></li>
+  <li><a href="#step-2-identify-burst-boundaries-per-participant" id="toc-step-2-identify-burst-boundaries-per-participant" class="nav-link" data-scroll-target="#step-2-identify-burst-boundaries-per-participant">Step 2 — Identify burst boundaries per participant</a></li>
+  <li><a href="#step-3-compress-gaps-between-bursts" id="toc-step-3-compress-gaps-between-bursts" class="nav-link" data-scroll-target="#step-3-compress-gaps-between-bursts">Step 3 — Compress gaps between bursts</a></li>
+  <li><a href="#final-dataset" id="toc-final-dataset" class="nav-link" data-scroll-target="#final-dataset">Final dataset</a></li>
   </ul></li>
-  <li><a href="#adding-tinterval-to-data" id="toc-adding-tinterval-to-data" class="nav-link" data-scroll-target="#adding-tinterval-to-data">Adding <code>TINTERVAL</code> to data</a>
-  <ul class="collapse">
-  <li><a href="#adding-and-adjusting-time-interval" id="toc-adding-and-adjusting-time-interval" class="nav-link" data-scroll-target="#adding-and-adjusting-time-interval">Adding and adjusting time interval</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -429,8 +404,13 @@ window.Quarto = {
 
 
 <p>Here, basic steps to transform intensive longitudinal data into the format needed for the DMBM are explained. For illustrative purposes, we simulate a data set below.</p>
-<section id="simulate-toy-example" class="level2">
-<h2 class="anchored" data-anchor-id="simulate-toy-example">Simulate toy example</h2>
+<p>Here, we demonstrate how measurement-burst data can be prepared for the Dynamic Measurement-Burst Model (DMBM). Because the empirical data used in the manuscript cannot be shared publicly, we simulate a small example dataset.</p>
+<p>The goal of this section is to illustrate <strong>two key preprocessing steps</strong>:</p>
+<p><strong>1. Transform burst data from long format into a semi-wide format</strong><br>
+<strong>2. Construct and adjust the <code>TINTERVAL</code> variable required by Mplus</strong></p>
+<p>These steps ensure that: - <strong>within-burst dynamics</strong> can be modeled in long format - <strong>between-burst dynamics of process features</strong> can be modeled in wide format - Mplus does not waste computation time interpreting large gaps between bursts.</p>
+<section id="simulate-toy-example" class="level1">
+<h1>Simulate toy example</h1>
 <p>As the manuscript uses 3rd party data we are not permitted to share publicly, we will simulate example data below.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
@@ -495,19 +475,22 @@ window.Quarto = {
 # ℹ 80 more rows</code></pre>
 </div>
 </div>
-<p>In this toy example, we see nested data in long format: Measurment occasions <span class="math inline">\(t\)</span> are nested within measurement bursts <span class="math inline">\(W\)</span> which are nested in persons <span class="math inline">\(UUID\)</span>.</p>
-<p>To process these data for the DMBM two steps need to be completed:</p>
-<ol type="1">
-<li><p>The data needs to be transformed into a semi-wide format in which bursts <span class="math inline">\(W\)</span> are displayed in separate columns per variable</p></li>
-<li><p>A time interval variable needs to be added to the data</p></li>
-</ol>
-<p>Below both steps are explained.</p>
+<p><strong>Structure of measurement-burst data</strong></p>
+<p>The simulated data illustrate the typical structure of measurement-burst designs:</p>
+<ul>
+<li>measurement occasions ( t ) nested within bursts ( W )</li>
+<li>bursts nested within persons ( UUID )</li>
+</ul>
+<p>Importantly, bursts are separated by <strong>large time gaps</strong> (e.g., 30 days), while observations <strong>within bursts are closely spaced</strong> (e.g., every 3 hours).</p>
+<p>This distinction is crucial when constructing the <code>TINTERVAL</code> variable.</p>
 </section>
 <section id="data-transformation" class="level1">
 <h1>Data Transformation</h1>
-<p>Here, we transform the data from above into a wide format in which bursts/waves are displayed as separate columns.</p>
-<section id="long-to-semi-wide-format" class="level2">
-<h2 class="anchored" data-anchor-id="long-to-semi-wide-format">Long to semi-wide format</h2>
+<p>To prepare the data for the DMBM, we first reshape the dataset into a <strong>semi-wide format</strong>.</p>
+<p>In this format: - intensive longitudinal observations remain in <strong>long format</strong> - burst-level variables appear as <strong>separate columns per burst</strong></p>
+<p>This allows the model to simultaneously estimate: - within-burst dynamics - between-burst dynamics of process features.</p>
+<p><strong>Step: Convert bursts to columns</strong></p>
+<p>Each burst receives its own set of variables (e.g., <code>confidence_W1</code>, <code>confidence_W2</code>, <code>confidence_W3</code>).</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="do">#####################################################################################################################</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>df_long <span class="ot">&lt;-</span> df_long <span class="sc">%&gt;%</span></span>
@@ -549,14 +532,35 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="do">#####################################################################################################################</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
+<section id="adding-tinterval-to-the-data" class="level1">
+<h1>Adding <code>TINTERVAL</code> to the data</h1>
+<p>Dynamic models in Mplus require a <strong>time-interval variable (<code>TINTERVAL</code>)</strong> that represents elapsed time between observations.</p>
+<p>Instead of counting measurement occasions, this variable encodes <strong>continuous time since the first observation for each participant</strong>.</p>
+<p>For example:</p>
+<ul>
+<li>first observation → <code>0</code></li>
+<li>next observation 38 minutes later → <code>38</code></li>
+</ul>
+<p>This allows Mplus to correctly interpret temporal precedence.</p>
+<hr>
+<section id="measurement-burst-complication" class="level2">
+<h2 class="anchored" data-anchor-id="measurement-burst-complication">Measurement-burst complication</h2>
+<p>Measurement-burst data introduce a practical complication:</p>
+<p>The time gap between bursts can be extremely large.<br>
+For example, a 30-day gap corresponds to <strong>43,200 minutes</strong>.</p>
+<p>If left unchanged, Mplus interprets these large gaps literally and inserts many missing time points internally, which can dramatically slow estimation.</p>
+<hr>
 </section>
-<section id="adding-tinterval-to-data" class="level1">
-<h1>Adding <code>TINTERVAL</code> to data</h1>
-<p>Mplus requires an interval variable to process intensive longitudinal data. The basic idea is that a new time variable is created, which does not count the number of measurement, but the time since the start point of the study, for each measurement. For example, if measurement <span class="math inline">\(t=1\)</span> was taken at 10:00am, and measurement <span class="math inline">\(t=2\)</span> was taken at 10:38am, we transform these measures using their time stamp. Accordingly, <span class="math inline">\(t=1\)</span> become <span class="math inline">\(0\)</span>, the starting point of our study, and <span class="math inline">\(t=2\)</span> becomes <span class="math inline">\(38\)</span>. This explains the temporal precedent between data points to Mplus.</p>
-<p>For measurement burst data, we thus need a continuous time interval across all bursts/waves. However, as the breaks between bursts can be quite long, the time interval between the last measurement of the previous wave and the first measurement of the subsequent wave can be extremely long (e.g., 30 days contain 43.200 minutes). To avoid excessive computational needs, it is advisable to adjust the time interval variable between bursts, such that the temporal precedent is maintained.</p>
-<p>Below, we illustrate how this can be done.</p>
-<section id="adding-and-adjusting-time-interval" class="level2">
-<h2 class="anchored" data-anchor-id="adding-and-adjusting-time-interval">Adding and adjusting time interval</h2>
+<section id="key-idea" class="level2">
+<h2 class="anchored" data-anchor-id="key-idea">Key idea</h2>
+<p><strong>We only model dynamics within bursts.</strong></p>
+<p>Therefore: - long gaps <strong>between bursts do not carry meaningful information</strong> - compressing them <strong>does not affect estimation</strong></p>
+<p>We therefore: - keep the temporal ordering within bursts intact - replace large inter-burst gaps with a small fixed interval (e.g., 24 hours).</p>
+<p>This preserves the temporal structure needed for estimation while avoiding unnecessary computational burden.</p>
+<p>This can be done in 3 steps:</p>
+<section id="step-1-create-continuous-time-variable" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-create-continuous-time-variable">Step 1 — Create continuous time variable</h3>
+<p>We first compute elapsed time since each participant’s first observation.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="do">#####################################################################################################################</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -585,6 +589,12 @@ window.Quarto = {
  9 P01       2     4 2020-01-31 17:06:00                 729.
 10 P01       2     5 2020-01-31 20:06:00                 732.</code></pre>
 </div>
+</div>
+</section>
+<section id="step-2-identify-burst-boundaries-per-participant" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-identify-burst-boundaries-per-participant">Step 2 — Identify burst boundaries per participant</h3>
+<p>We determine the first and last observation of each burst.</p>
+<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#adjust gaps between waves:#</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 1) Get per-person wave boundaries (first/last Date_Time per wave)</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>pp_bounds <span class="ot">&lt;-</span> df_long <span class="sc">%&gt;%</span></span>
@@ -614,6 +624,12 @@ window.Quarto = {
 6 P06   2020-01-01 08:08:00 2020-01-31 08:14:00 2020-03-01 08:20:00
 # ℹ 3 more variables: W1_W_last &lt;dttm&gt;, W2_W_last &lt;dttm&gt;, W3_W_last &lt;dttm&gt;</code></pre>
 </div>
+</div>
+</section>
+<section id="step-3-compress-gaps-between-bursts" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-compress-gaps-between-bursts">Step 3 — Compress gaps between bursts</h3>
+<p>Large inter-burst gaps are replaced with a fixed interval (24 hours here).</p>
+<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2) Join bounds back to each row, compute adjusted seconds</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>df_adj <span class="ot">&lt;-</span> df_time <span class="sc">%&gt;%</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(pp_bounds, <span class="at">by =</span> <span class="st">"UUID"</span>) <span class="sc">%&gt;%</span></span>
@@ -657,6 +673,12 @@ window.Quarto = {
 11 P01   2020-03-01 08:00:00     3     1                1440.          72
 12 P01   2020-03-01 11:00:00     3     2                1443.          75</code></pre>
 </div>
+</div>
+</section>
+<section id="final-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="final-dataset">Final dataset</h3>
+<p>The resulting dataset: - preserves within-burst timing - removes large inter-burst gaps - is ready for DSEM estimation in Mplus.</p>
+<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>adjusted_df <span class="ot">&lt;-</span> df_adj <span class="sc">%&gt;%</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># example: keep ID, wave, adjusted time, and wave-specific outcomes</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
@@ -690,6 +712,7 @@ window.Quarto = {
 </div>
 
 
+</section>
 </section>
 </section>
 
@@ -780,7 +803,7 @@ window.Quarto = {
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/piaandresen\.github\.io\/Dynamic-Measurement-Burst-Models\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
