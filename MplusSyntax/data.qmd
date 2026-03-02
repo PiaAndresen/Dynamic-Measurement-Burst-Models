@@ -41,6 +41,7 @@ As the manuscript uses 3rd party data we are not permitted to share publicly, we
 #    - 3 bursts (W1/W2/W3)
 #    - 5 ESM prompts per burst
 #    - 2 example variables: confidence, depression
+#    - Each burst spans TWO days
 # ============================================================
 
 n_id    <- 6
@@ -49,12 +50,9 @@ k_prompts <- 5
 
 ids <- sprintf("P%02d", 1:n_id)
 
-# We'll create a baseline time for wave 1, then insert big gaps to wave 2 & 3.
-# This mimics real burst designs with long breaks between waves. In this case, we simulate 
-# 30 day interval between waves.
 wave_start <- tibble(
   W = 1:3,
-  wave_gap_days = c(0, 30, 60)  # big gaps between waves
+  wave_gap_days = c(0, 30, 60)  # 30-day gaps between bursts
 )
 
 df_long <- expand_grid(
@@ -65,21 +63,28 @@ df_long <- expand_grid(
   left_join(wave_start, by = "W") %>%
   group_by(UUID, W) %>%
   mutate(
-    # Create actual datetimes: wave start + within-wave prompt spacing (e.g., every 3 hours)
-    Date_Time = ymd_hms("2020-01-01 08:00:00", tz = "Europe/Paris") +
-      days(wave_gap_days[1]) + hours(3 * (t - 1)) +
-      # small person-specific offset so people don't all start at identical times
-      minutes(sample(0:20, 1))
+    base_time = ymd_hms("2020-01-01 08:00:00", tz = "Europe/Paris") +
+      days(wave_gap_days[1]),
+    
+    # First 3 prompts on Day 1, remaining on Day 2
+    day_offset = if_else(t <= ceiling(k_prompts / 2), 0, 1),
+    
+    # Within-day spacing every 3 hours
+    hour_offset = 3 * ((t - 1) %% ceiling(k_prompts / 2)),
+    
+    Date_Time = base_time +
+      days(day_offset) +
+      hours(hour_offset) +
+      minutes(sample(0:20, 1))  # small person-specific offset
   ) %>%
   ungroup() %>%
   mutate(
-    # Example outcomes (toy numbers)
     confidence = round(rnorm(n(), mean = 2.5 + 0.3 * W, sd = 0.8), 2),
     depression = round(rnorm(n(), mean = 4.0 - 0.2 * W, sd = 0.9), 2)
   ) %>%
   select(UUID, W, t, Date_Time, confidence, depression)
 
-df_long
+print(df_long, n = 20)
 ```
 
 **Structure of measurement-burst data**
@@ -132,7 +137,7 @@ df_wide <- df_long %>%
     names_glue = "{.value}_W{W}"
   )
 
-df_wide
+print(df_wide, n = 20)
 
 #####################################################################################################################
 
@@ -140,16 +145,19 @@ df_wide
 
 # Adding `TINTERVAL` to the data
 
-Dynamic models in Mplus require a **time-interval variable (`TINTERVAL`)** that represents elapsed time between observations.
+Dynamic models in Mplus (DSEM) require a continuous time variable that represents elapsed time since the beginning of the study for each participant. This variable is then referenced in the `TINTERVAL` option in Mplus.
 
-Instead of counting measurement occasions, this variable encodes **continuous time since the first observation for each participant**.
+Instead of counting measurement occasions, this variable encodes **time since the first observation for each participant**.
 
 For example:
 
--   first observation → `0`
--   next observation 38 minutes later → `38`
+-   first observation → `0`\
 
-This allows Mplus to correctly interpret temporal precedence.
+    second observation 3 hours later → `3`\
+
+    third observation 6 hours later → `6`
+
+This allows Mplus to correctly interpret temporal precedence and to correctly account for unequal spacing between observations.
 
 ------------------------------------------------------------------------
 
@@ -158,7 +166,7 @@ This allows Mplus to correctly interpret temporal precedence.
 Measurement-burst data introduce a practical complication:
 
 The time gap between bursts can be extremely large.\
-For example, a 30-day gap corresponds to **43,200 minutes**.
+For example, a 30-day gap corresponds to **720 hours**.
 
 If left unchanged, Mplus interprets these large gaps literally and inserts many missing time points internally, which can dramatically slow estimation.
 
@@ -172,19 +180,19 @@ Therefore:
 
 -   long gaps **between bursts do not carry meaningful information** -
 
--    compressing them **does not affect estimation**
+-   compressing them **does not affect estimation**
 
 We therefore:
 
--    keep the temporal ordering within bursts intact
+-   keep the temporal ordering within bursts intact
 
--    replace large inter-burst gaps with a small fixed interval (e.g., 24 hours).
+-   replace large inter-burst gaps with a small fixed interval (e.g., 24 hours).
 
 This preserves the temporal structure needed for estimation while avoiding unnecessary computational burden.
 
 This can be done in 3 steps:
 
-### Step 1 — Create continuous time variable
+### Step 1 — Create time interval variable
 
 We first compute elapsed time since each participant’s first observation.
 
@@ -284,5 +292,5 @@ adjusted_df <- df_adj %>%
   # drop rows where ALL outcome columns are NA
   filter(if_any(starts_with("confidence_") | starts_with("depression_"), ~ !is.na(.x)))
 
-adjusted_df 
+print(adjusted_df,n=20)
 ```

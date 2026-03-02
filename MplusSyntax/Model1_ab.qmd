@@ -14,6 +14,9 @@ Please use the tabs below to navigate between syntax of model 1a (excluding rand
 The syntax for specifying Model 1a is given below.
 
 ``` default
+! ---------------------------------------------------------
+! GENERAL MODEL SET-UP
+! ---------------------------------------------------------
 TITLE:      M1a: Network of Mean and Inertia/Autoregression
 
 DATA:
@@ -39,7 +42,11 @@ ANALYSIS:
             BITERATIONS = (10000);
             CHAINS=2;
             PROCESSORS = 30;
-            
+
+
+! ---------------------------------------------------------
+! MODEL DEFINITION
+! ---------------------------------------------------------
 MODEL:
   
 %WITHIN%
@@ -81,6 +88,10 @@ MODEL:
 The syntax for specifying Model 1b is given below.
 
 ``` default
+! ---------------------------------------------------------
+! GENERAL MODEL SET-UP
+! ---------------------------------------------------------
+
 TITLE:      M1b: Network of Mean and Inertia/Autoregression and Random Residual Variance
 
 DATA:
@@ -106,7 +117,11 @@ ANALYSIS:
             BITERATIONS = (10000);
             CHAINS=2;
             PROCESSORS = 30;
-            
+
+! ---------------------------------------------------------
+! MODEL DEFINITION
+! ---------------------------------------------------------
+
 MODEL:
   
 %WITHIN%

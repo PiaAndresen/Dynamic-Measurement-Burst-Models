@@ -29,6 +29,10 @@ Below, we present syntax for each of these steps, for models 2a (excl. random re
 The syntax for specifying the `WITHIN` part of the DMBM excluding random residual variances (i.e., model 2a) is given below.
 
 ``` default
+! ---------------------------------------------------------
+! GENERAL MODEL SET-UP
+! ---------------------------------------------------------
+
 TITLE:    Mode2a DMBM;
 DATA:     FILE = "Example.dat";
 
@@ -51,6 +55,9 @@ ANALYSIS:
           CHAINS=2;
           PROCESSORS = 40;
 
+! ---------------------------------------------------------
+! MODEL DEFINITION
+! ---------------------------------------------------------
 MODEL:
 
 %WITHIN%
@@ -71,6 +78,10 @@ MODEL:
 The syntax for specifying the `WITHIN` part of the DMBM including random residual variances (i.e., model 2b) is given below.
 
 ``` default
+! ---------------------------------------------------------
+! GENERAL MODEL SET-UP
+! ---------------------------------------------------------
+
 TITLE:    Mode2b DMBM;
 DATA:     FILE = "Example.dat";
 
@@ -92,6 +103,10 @@ ANALYSIS:
           THIN = 10;
           CHAINS=2;
           PROCESSORS = 40;
+
+! ---------------------------------------------------------
+! MODEL DEFINITION
+! ---------------------------------------------------------
 
 MODEL:
 
@@ -329,8 +344,18 @@ Here, we use labeling to put constraints on the residual covariances (`(rc1)`) a
 
             WCY2 WCY3 (rv1);
             WCA2 WCA3 (rv2);
+
+
             
+! ---------------------------------------------------------
 ! DEFINE OUTPUT
+! ---------------------------------------------------------
+
+OUTPUT:
+            TECH1 TECH8 STDYX FSCOMPARISON;
+PLOT:
+            TYPE = PLOT3;
+            FACTOR =ALL;  
 
 OUTPUT:
             TECH1 TECH8 STDYX FSCOMPARISON;
@@ -369,7 +394,11 @@ Here, we use labeling to put constraints on the residual covariances (`(rc1)`) a
             WCA2 WCA3 (rv2);
             WCC2 WCC3 (rv3);
 
+
+
+! ---------------------------------------------------------
 ! DEFINE OUTPUT
+! ---------------------------------------------------------
 
 OUTPUT:
             TECH1 TECH8 STDYX FSCOMPARISON;
