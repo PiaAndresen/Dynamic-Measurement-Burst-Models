@@ -2,22 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://piaandresen.github.io/Dynamic-Measurement-Burst-Models/data.html</loc>
-    <lastmod>2026-03-02T21:00:41.970Z</lastmod>
+    <lastmod>2026-03-05T20:42:04.859Z</lastmod>
   </url>
   <url>
     <loc>https://piaandresen.github.io/Dynamic-Measurement-Burst-Models/Model1_ab.html</loc>
-    <lastmod>2026-03-02T20:57:51.268Z</lastmod>
-  </url>
-  <url>
-    <loc>https://piaandresen.github.io/Dynamic-Measurement-Burst-Models/variance_decomposition.html</loc>
-    <lastmod>2026-03-05T20:31:45.616Z</lastmod>
+    <lastmod>2026-03-05T20:42:04.868Z</lastmod>
   </url>
   <url>
     <loc>https://piaandresen.github.io/Dynamic-Measurement-Burst-Models/index.html</loc>
-    <lastmod>2026-02-15T16:47:46.918Z</lastmod>
+    <lastmod>2026-03-05T20:47:22.793Z</lastmod>
+  </url>
+  <url>
+    <loc>https://piaandresen.github.io/Dynamic-Measurement-Burst-Models/EmpiricalResults:/readme.html</loc>
+    <lastmod>2026-03-02T20:26:31.123Z</lastmod>
+  </url>
+  <url>
+    <loc>https://piaandresen.github.io/Dynamic-Measurement-Burst-Models/variance_decomposition.html</loc>
+    <lastmod>2026-03-05T20:42:04.873Z</lastmod>
+  </url>
+  <url>
+    <loc>https://piaandresen.github.io/Dynamic-Measurement-Burst-Models/readme.html</loc>
+    <lastmod>2026-02-15T16:47:46.925Z</lastmod>
   </url>
   <url>
     <loc>https://piaandresen.github.io/Dynamic-Measurement-Burst-Models/RICLPM_ab.html</loc>
-    <lastmod>2026-03-02T20:59:12.503Z</lastmod>
+    <lastmod>2026-03-05T20:42:04.870Z</lastmod>
   </url>
 </urlset>

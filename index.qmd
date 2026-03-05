@@ -1,5 +1,5 @@
 ---
-title: "Dynamic Measurement Burst Models: A Tutorial"
+title: "The Dynamic Measurement-Burst Model: A method for assessing psychological process features at multiple timescales."
 format: html
 editor: visual
 author:
@@ -14,7 +14,7 @@ author:
 
 ## Welcome
 
-This website is a supplement to "From Moments to Lifetimes: Modeling Measurement Bursts using DSEM" by Andresen, Schuurman and Hamaker (in prep). Please cite us when suing this method.
+This website is a supplement to "The Dynamic Measurement-Burst Model: A method for assessing psychological process features at multiple timescales." by Andresen, Schuurman and Hamaker (in prep). Please cite us when suing this method.
 
 This website contains Mplus syntax for v.8.11, to specify dynamic measurement burst models (DMBM), an approach integrating the multilevel first order autoregressive model (ML-AR(1)M) and the random intercept cross-lagged panel model (RI-CLPM) to assess stability and change in psychological processes at the micro- meso and macro-level.
 
@@ -27,6 +27,6 @@ On this website, we provide a simple tutorial for running these models in Mplus.
 
 Use the sidebar to navigate this website.
 
-All models presented on this website were tested using the empirical example presented in Andresen et al (in prep.). Mplus output files can be found "\[here\]"(add link to online data archive folder).
+All models presented on this website were tested using the empirical example presented in Andresen et al (in prep.). [Mplus output files can be found here](https://github.com/PiaAndresen/Dynamic-Measurement-Burst-Models/tree/main/EmpiricalResults%3A).
 
 Please note that we do not possess ownership of the data. Researchers wishing to obtain data for further investigation or as part of this tutorial are obliged to request the data for the [Emote Database](https://emotedatabase.com/datasets/?page=2).
