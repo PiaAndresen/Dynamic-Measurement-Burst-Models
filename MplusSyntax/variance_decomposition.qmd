@@ -40,7 +40,7 @@ MODEL:
           !
           ! Here, the labels (micro1–micro3) define the micro-level variance per burst.
 
-          Y1-Y3 (micro1-micro3);
+          Y1-Y3 (microv1-microv3);
 
 
 %BETWEEN%
@@ -52,9 +52,9 @@ MODEL:
 
           Y BY Y1-Y3@1;      ! macro-level mean (M_i) defined from M1_i–M3_i
 
-          Y1-Y3 (meso1-meso3);   ! meso-level variance: burst-to-burst deviations in M
+          Y1-Y3 (mesov1-mesov3);   ! meso-level variance: burst-to-burst deviations in M
 
-          Y (macro);         ! macro-level variance in M_i
+          Y (macrov);         ! macro-level variance in M_i
 ```
 
 ## The MODEL CONSTRAINT command

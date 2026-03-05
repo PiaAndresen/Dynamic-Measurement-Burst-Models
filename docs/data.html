@@ -108,35 +108,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -394,13 +365,17 @@ window.Quarto = {
    
   <ul>
   <li><a href="#simulate-toy-example" id="toc-simulate-toy-example" class="nav-link active" data-scroll-target="#simulate-toy-example">Simulate toy example</a></li>
-  <li><a href="#data-transformation" id="toc-data-transformation" class="nav-link" data-scroll-target="#data-transformation">Data Transformation</a>
+  <li><a href="#data-transformation" id="toc-data-transformation" class="nav-link" data-scroll-target="#data-transformation">Data Transformation</a></li>
+  <li><a href="#adding-tinterval-to-the-data" id="toc-adding-tinterval-to-the-data" class="nav-link" data-scroll-target="#adding-tinterval-to-the-data">Adding <code>TINTERVAL</code> to the data</a>
   <ul class="collapse">
-  <li><a href="#long-to-semi-wide-format" id="toc-long-to-semi-wide-format" class="nav-link" data-scroll-target="#long-to-semi-wide-format">Long to semi-wide format</a></li>
+  <li><a href="#measurement-burst-complication" id="toc-measurement-burst-complication" class="nav-link" data-scroll-target="#measurement-burst-complication">Measurement-burst complication</a></li>
+  <li><a href="#key-idea" id="toc-key-idea" class="nav-link" data-scroll-target="#key-idea">Key idea</a>
+  <ul class="collapse">
+  <li><a href="#step-1-create-time-interval-variable" id="toc-step-1-create-time-interval-variable" class="nav-link" data-scroll-target="#step-1-create-time-interval-variable">Step 1 — Create time interval variable</a></li>
+  <li><a href="#step-2-identify-burst-boundaries-per-participant" id="toc-step-2-identify-burst-boundaries-per-participant" class="nav-link" data-scroll-target="#step-2-identify-burst-boundaries-per-participant">Step 2 — Identify burst boundaries per participant</a></li>
+  <li><a href="#step-3-compress-gaps-between-bursts" id="toc-step-3-compress-gaps-between-bursts" class="nav-link" data-scroll-target="#step-3-compress-gaps-between-bursts">Step 3 — Compress gaps between bursts</a></li>
+  <li><a href="#final-dataset" id="toc-final-dataset" class="nav-link" data-scroll-target="#final-dataset">Final dataset</a></li>
   </ul></li>
-  <li><a href="#adding-tinterval-to-data" id="toc-adding-tinterval-to-data" class="nav-link" data-scroll-target="#adding-tinterval-to-data">Adding <code>TINTERVAL</code> to data</a>
-  <ul class="collapse">
-  <li><a href="#adding-and-adjusting-time-interval" id="toc-adding-and-adjusting-time-interval" class="nav-link" data-scroll-target="#adding-and-adjusting-time-interval">Adding and adjusting time interval</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -429,8 +404,13 @@ window.Quarto = {
 
 
 <p>Here, basic steps to transform intensive longitudinal data into the format needed for the DMBM are explained. For illustrative purposes, we simulate a data set below.</p>
-<section id="simulate-toy-example" class="level2">
-<h2 class="anchored" data-anchor-id="simulate-toy-example">Simulate toy example</h2>
+<p>Here, we demonstrate how measurement-burst data can be prepared for the Dynamic Measurement-Burst Model (DMBM). Because the empirical data used in the manuscript cannot be shared publicly, we simulate a small example dataset.</p>
+<p>The goal of this section is to illustrate <strong>two key preprocessing steps</strong>:</p>
+<p><strong>1. Transform burst data from long format into a semi-wide format</strong><br>
+<strong>2. Construct and adjust the <code>TINTERVAL</code> variable required by Mplus</strong></p>
+<p>These steps ensure that: - <strong>within-burst dynamics</strong> can be modeled in long format - <strong>between-burst dynamics of process features</strong> can be modeled in wide format - Mplus does not waste computation time interpreting large gaps between bursts.</p>
+<section id="simulate-toy-example" class="level1">
+<h1>Simulate toy example</h1>
 <p>As the manuscript uses 3rd party data we are not permitted to share publicly, we will simulate example data below.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
@@ -439,45 +419,50 @@ window.Quarto = {
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#    - 3 bursts (W1/W2/W3)</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#    - 5 ESM prompts per burst</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#    - 2 example variables: confidence, depression</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>n_id    <span class="ot">&lt;-</span> <span class="dv">6</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>n_waves <span class="ot">&lt;-</span> <span class="dv">3</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>k_prompts <span class="ot">&lt;-</span> <span class="dv">5</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>ids <span class="ot">&lt;-</span> <span class="fu">sprintf</span>(<span class="st">"P%02d"</span>, <span class="dv">1</span><span class="sc">:</span>n_id)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># We'll create a baseline time for wave 1, then insert big gaps to wave 2 &amp; 3.</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># This mimics real burst designs with long breaks between waves. In this case, we simulate </span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># 30 day interval between waves.</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>wave_start <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">W =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">wave_gap_days =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">30</span>, <span class="dv">60</span>)  <span class="co"># big gaps between waves</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>df_long <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">UUID =</span> ids,</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">W    =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">t    =</span> <span class="dv">1</span><span class="sc">:</span>k_prompts</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(wave_start, <span class="at">by =</span> <span class="st">"W"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(UUID, W) <span class="sc">%&gt;%</span></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create actual datetimes: wave start + within-wave prompt spacing (e.g., every 3 hours)</span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">Date_Time =</span> <span class="fu">ymd_hms</span>(<span class="st">"2020-01-01 08:00:00"</span>, <span class="at">tz =</span> <span class="st">"Europe/Paris"</span>) <span class="sc">+</span></span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>      <span class="fu">days</span>(wave_gap_days[<span class="dv">1</span>]) <span class="sc">+</span> <span class="fu">hours</span>(<span class="dv">3</span> <span class="sc">*</span> (t <span class="sc">-</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>      <span class="co"># small person-specific offset so people don't all start at identical times</span></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">minutes</span>(<span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">20</span>, <span class="dv">1</span>))</span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Example outcomes (toy numbers)</span></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">confidence =</span> <span class="fu">round</span>(<span class="fu">rnorm</span>(<span class="fu">n</span>(), <span class="at">mean =</span> <span class="fl">2.5</span> <span class="sc">+</span> <span class="fl">0.3</span> <span class="sc">*</span> W, <span class="at">sd =</span> <span class="fl">0.8</span>), <span class="dv">2</span>),</span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">depression =</span> <span class="fu">round</span>(<span class="fu">rnorm</span>(<span class="fu">n</span>(), <span class="at">mean =</span> <span class="fl">4.0</span> <span class="sc">-</span> <span class="fl">0.2</span> <span class="sc">*</span> W, <span class="at">sd =</span> <span class="fl">0.9</span>), <span class="dv">2</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#    - Each burst spans TWO days</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>n_id    <span class="ot">&lt;-</span> <span class="dv">6</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>n_waves <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>k_prompts <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>ids <span class="ot">&lt;-</span> <span class="fu">sprintf</span>(<span class="st">"P%02d"</span>, <span class="dv">1</span><span class="sc">:</span>n_id)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>wave_start <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">W =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">wave_gap_days =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">30</span>, <span class="dv">60</span>)  <span class="co"># 30-day gaps between bursts</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>df_long <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">UUID =</span> ids,</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">W    =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">t    =</span> <span class="dv">1</span><span class="sc">:</span>k_prompts</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(wave_start, <span class="at">by =</span> <span class="st">"W"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(UUID, W) <span class="sc">%&gt;%</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">base_time =</span> <span class="fu">ymd_hms</span>(<span class="st">"2020-01-01 08:00:00"</span>, <span class="at">tz =</span> <span class="st">"Europe/Paris"</span>) <span class="sc">+</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">days</span>(wave_gap_days[<span class="dv">1</span>]),</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># First 3 prompts on Day 1, remaining on Day 2</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">day_offset =</span> <span class="fu">if_else</span>(t <span class="sc">&lt;=</span> <span class="fu">ceiling</span>(k_prompts <span class="sc">/</span> <span class="dv">2</span>), <span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Within-day spacing every 3 hours</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">hour_offset =</span> <span class="dv">3</span> <span class="sc">*</span> ((t <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">%%</span> <span class="fu">ceiling</span>(k_prompts <span class="sc">/</span> <span class="dv">2</span>)),</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">Date_Time =</span> base_time <span class="sc">+</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>      <span class="fu">days</span>(day_offset) <span class="sc">+</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>      <span class="fu">hours</span>(hour_offset) <span class="sc">+</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>      <span class="fu">minutes</span>(<span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">20</span>, <span class="dv">1</span>))  <span class="co"># small person-specific offset</span></span>
 <span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(UUID, W, t, Date_Time, confidence, depression)</span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>df_long</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">confidence =</span> <span class="fu">round</span>(<span class="fu">rnorm</span>(<span class="fu">n</span>(), <span class="at">mean =</span> <span class="fl">2.5</span> <span class="sc">+</span> <span class="fl">0.3</span> <span class="sc">*</span> W, <span class="at">sd =</span> <span class="fl">0.8</span>), <span class="dv">2</span>),</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">depression =</span> <span class="fu">round</span>(<span class="fu">rnorm</span>(<span class="fu">n</span>(), <span class="at">mean =</span> <span class="fl">4.0</span> <span class="sc">-</span> <span class="fl">0.2</span> <span class="sc">*</span> W, <span class="at">sd =</span> <span class="fl">0.9</span>), <span class="dv">2</span>)</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(UUID, W, t, Date_Time, confidence, depression)</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(df_long, <span class="at">n =</span> <span class="dv">20</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 90 × 6
    UUID      W     t Date_Time           confidence depression
@@ -485,29 +470,50 @@ window.Quarto = {
  1 P01       1     1 2020-01-01 08:03:00       1.88       3.25
  2 P01       1     2 2020-01-01 11:03:00       2.57       3.84
  3 P01       1     3 2020-01-01 14:03:00       2.56       2.78
- 4 P01       1     4 2020-01-01 17:03:00       2.47       4.32
- 5 P01       1     5 2020-01-01 20:03:00       3          2.65
+ 4 P01       1     4 2020-01-02 08:03:00       2.47       4.32
+ 5 P01       1     5 2020-01-02 11:03:00       3          2.65
  6 P01       2     1 2020-01-31 08:06:00       2.39       5.06
  7 P01       2     2 2020-01-31 11:06:00       3.45       3.15
  8 P01       2     3 2020-01-31 14:06:00       2.11       5.11
- 9 P01       2     4 2020-01-31 17:06:00       2.92       3.23
-10 P01       2     5 2020-01-31 20:06:00       3.4        2.72
-# ℹ 80 more rows</code></pre>
+ 9 P01       2     4 2020-02-01 08:06:00       2.92       3.23
+10 P01       2     5 2020-02-01 11:06:00       3.4        2.72
+11 P01       3     1 2020-03-01 08:00:00       3.51       3.42
+12 P01       3     2 2020-03-01 11:00:00       4.04       3.42
+13 P01       3     3 2020-03-01 14:00:00       3.35       1.89
+14 P01       3     4 2020-03-02 08:00:00       3.8        4.35
+15 P01       3     5 2020-03-02 11:00:00       4.27       2.39
+16 P02       1     1 2020-01-01 08:01:00       2.25       4.1 
+17 P02       1     2 2020-01-01 11:01:00       1.77       4.25
+18 P02       1     3 2020-01-01 14:01:00       2.84       3.92
+19 P02       1     4 2020-01-02 08:01:00       2.61       3.69
+20 P02       1     5 2020-01-02 11:01:00       2.37       3.98
+# ℹ 70 more rows</code></pre>
 </div>
 </div>
-<p>In this toy example, we see nested data in long format: Measurment occasions <span class="math inline">\(t\)</span> are nested within measurement bursts <span class="math inline">\(W\)</span> which are nested in persons <span class="math inline">\(UUID\)</span>.</p>
-<p>To process these data for the DMBM two steps need to be completed:</p>
-<ol type="1">
-<li><p>The data needs to be transformed into a semi-wide format in which bursts <span class="math inline">\(W\)</span> are displayed in separate columns per variable</p></li>
-<li><p>A time interval variable needs to be added to the data</p></li>
-</ol>
-<p>Below both steps are explained.</p>
+<p><strong>Structure of measurement-burst data</strong></p>
+<p>The simulated data illustrate the typical structure of measurement-burst designs:</p>
+<ul>
+<li>measurement occasions ( t ) nested within bursts ( W )</li>
+<li>bursts nested within persons ( UUID )</li>
+</ul>
+<p>Importantly, bursts are separated by <strong>large time gaps</strong> (e.g., 30 days), while observations <strong>within bursts are closely spaced</strong> (e.g., every 3 hours).</p>
+<p>This distinction is crucial when constructing the <code>TINTERVAL</code> variable.</p>
 </section>
 <section id="data-transformation" class="level1">
 <h1>Data Transformation</h1>
-<p>Here, we transform the data from above into a wide format in which bursts/waves are displayed as separate columns.</p>
-<section id="long-to-semi-wide-format" class="level2">
-<h2 class="anchored" data-anchor-id="long-to-semi-wide-format">Long to semi-wide format</h2>
+<p>To prepare the data for the DMBM, we first reshape the dataset into a <strong>semi-wide format</strong>.</p>
+<p>In this format:</p>
+<ul>
+<li><p>intensive longitudinal observations remain in <strong>long format</strong></p></li>
+<li><p>burst-level variables appear as <strong>separate columns per burst</strong></p></li>
+</ul>
+<p>This allows the model to simultaneously estimate:</p>
+<ul>
+<li><p>within-burst dynamics</p></li>
+<li><p>between-burst dynamics of process features.</p></li>
+</ul>
+<p><strong>Step: Convert bursts to columns</strong></p>
+<p>Each burst receives its own set of variables (e.g., <code>confidence_W1</code>, <code>confidence_W2</code>, <code>confidence_W3</code>).</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="do">#####################################################################################################################</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>df_long <span class="ot">&lt;-</span> df_long <span class="sc">%&gt;%</span></span>
@@ -527,36 +533,78 @@ window.Quarto = {
 <span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_glue =</span> <span class="st">"{.value}_W{W}"</span></span>
 <span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>df_wide</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(df_wide, <span class="at">n =</span> <span class="dv">20</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 90 × 9
    UUID      t Date_Time           confidence_W1 confidence_W2 confidence_W3
    &lt;chr&gt; &lt;int&gt; &lt;dttm&gt;                      &lt;dbl&gt;         &lt;dbl&gt;         &lt;dbl&gt;
- 1 P01       1 2020-01-01 08:03:00          1.88         NA               NA
- 2 P01       2 2020-01-01 11:03:00          2.57         NA               NA
- 3 P01       3 2020-01-01 14:03:00          2.56         NA               NA
- 4 P01       4 2020-01-01 17:03:00          2.47         NA               NA
- 5 P01       5 2020-01-01 20:03:00          3            NA               NA
- 6 P01       1 2020-01-31 08:06:00         NA             2.39            NA
- 7 P01       2 2020-01-31 11:06:00         NA             3.45            NA
- 8 P01       3 2020-01-31 14:06:00         NA             2.11            NA
- 9 P01       4 2020-01-31 17:06:00         NA             2.92            NA
-10 P01       5 2020-01-31 20:06:00         NA             3.4             NA
-# ℹ 80 more rows
+ 1 P01       1 2020-01-01 08:03:00          1.88         NA            NA   
+ 2 P01       2 2020-01-01 11:03:00          2.57         NA            NA   
+ 3 P01       3 2020-01-01 14:03:00          2.56         NA            NA   
+ 4 P01       4 2020-01-02 08:03:00          2.47         NA            NA   
+ 5 P01       5 2020-01-02 11:03:00          3            NA            NA   
+ 6 P01       1 2020-01-31 08:06:00         NA             2.39         NA   
+ 7 P01       2 2020-01-31 11:06:00         NA             3.45         NA   
+ 8 P01       3 2020-01-31 14:06:00         NA             2.11         NA   
+ 9 P01       4 2020-02-01 08:06:00         NA             2.92         NA   
+10 P01       5 2020-02-01 11:06:00         NA             3.4          NA   
+11 P01       1 2020-03-01 08:00:00         NA            NA             3.51
+12 P01       2 2020-03-01 11:00:00         NA            NA             4.04
+13 P01       3 2020-03-01 14:00:00         NA            NA             3.35
+14 P01       4 2020-03-02 08:00:00         NA            NA             3.8 
+15 P01       5 2020-03-02 11:00:00         NA            NA             4.27
+16 P02       1 2020-01-01 08:01:00          2.25         NA            NA   
+17 P02       2 2020-01-01 11:01:00          1.77         NA            NA   
+18 P02       3 2020-01-01 14:01:00          2.84         NA            NA   
+19 P02       4 2020-01-02 08:01:00          2.61         NA            NA   
+20 P02       5 2020-01-02 11:01:00          2.37         NA            NA   
+# ℹ 70 more rows
 # ℹ 3 more variables: depression_W1 &lt;dbl&gt;, depression_W2 &lt;dbl&gt;,
 #   depression_W3 &lt;dbl&gt;</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="do">#####################################################################################################################</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
+<section id="adding-tinterval-to-the-data" class="level1">
+<h1>Adding <code>TINTERVAL</code> to the data</h1>
+<p>Dynamic models in Mplus (DSEM) require a continuous time variable that represents elapsed time since the beginning of the study for each participant. This variable is then referenced in the <code>TINTERVAL</code> option in Mplus.</p>
+<p>Instead of counting measurement occasions, this variable encodes <strong>time since the first observation for each participant</strong>.</p>
+<p>For example:</p>
+<ul>
+<li><p>first observation → <code>0</code><br>
+</p>
+<p>second observation 3 hours later → <code>3</code><br>
+</p>
+<p>third observation 6 hours later → <code>6</code></p></li>
+</ul>
+<p>This allows Mplus to correctly interpret temporal precedence and to correctly account for unequal spacing between observations.</p>
+<hr>
+<section id="measurement-burst-complication" class="level2">
+<h2 class="anchored" data-anchor-id="measurement-burst-complication">Measurement-burst complication</h2>
+<p>Measurement-burst data introduce a practical complication:</p>
+<p>The time gap between bursts can be extremely large.<br>
+For example, a 30-day gap corresponds to <strong>720 hours</strong>.</p>
+<p>If left unchanged, Mplus interprets these large gaps literally and inserts many missing time points internally, which can dramatically slow estimation.</p>
+<hr>
 </section>
-<section id="adding-tinterval-to-data" class="level1">
-<h1>Adding <code>TINTERVAL</code> to data</h1>
-<p>Mplus requires an interval variable to process intensive longitudinal data. The basic idea is that a new time variable is created, which does not count the number of measurement, but the time since the start point of the study, for each measurement. For example, if measurement <span class="math inline">\(t=1\)</span> was taken at 10:00am, and measurement <span class="math inline">\(t=2\)</span> was taken at 10:38am, we transform these measures using their time stamp. Accordingly, <span class="math inline">\(t=1\)</span> become <span class="math inline">\(0\)</span>, the starting point of our study, and <span class="math inline">\(t=2\)</span> becomes <span class="math inline">\(38\)</span>. This explains the temporal precedent between data points to Mplus.</p>
-<p>For measurement burst data, we thus need a continuous time interval across all bursts/waves. However, as the breaks between bursts can be quite long, the time interval between the last measurement of the previous wave and the first measurement of the subsequent wave can be extremely long (e.g., 30 days contain 43.200 minutes). To avoid excessive computational needs, it is advisable to adjust the time interval variable between bursts, such that the temporal precedent is maintained.</p>
-<p>Below, we illustrate how this can be done.</p>
-<section id="adding-and-adjusting-time-interval" class="level2">
-<h2 class="anchored" data-anchor-id="adding-and-adjusting-time-interval">Adding and adjusting time interval</h2>
+<section id="key-idea" class="level2">
+<h2 class="anchored" data-anchor-id="key-idea">Key idea</h2>
+<p><strong>We only model dynamics within bursts.</strong></p>
+<p>Therefore:</p>
+<ul>
+<li><p>long gaps <strong>between bursts do not carry meaningful information</strong> -</p></li>
+<li><p>compressing them <strong>does not affect estimation</strong></p></li>
+</ul>
+<p>We therefore:</p>
+<ul>
+<li><p>keep the temporal ordering within bursts intact</p></li>
+<li><p>replace large inter-burst gaps with a small fixed interval (e.g., 24 hours).</p></li>
+</ul>
+<p>This preserves the temporal structure needed for estimation while avoiding unnecessary computational burden.</p>
+<p>This can be done in 3 steps:</p>
+<section id="step-1-create-time-interval-variable" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-create-time-interval-variable">Step 1 — Create time interval variable</h3>
+<p>We first compute elapsed time since each participant’s first observation.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="do">#####################################################################################################################</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -577,14 +625,20 @@ window.Quarto = {
  1 P01       1     1 2020-01-01 08:03:00                   0 
  2 P01       1     2 2020-01-01 11:03:00                   3 
  3 P01       1     3 2020-01-01 14:03:00                   6 
- 4 P01       1     4 2020-01-01 17:03:00                   9 
- 5 P01       1     5 2020-01-01 20:03:00                  12 
+ 4 P01       1     4 2020-01-02 08:03:00                  24 
+ 5 P01       1     5 2020-01-02 11:03:00                  27 
  6 P01       2     1 2020-01-31 08:06:00                 720.
  7 P01       2     2 2020-01-31 11:06:00                 723.
  8 P01       2     3 2020-01-31 14:06:00                 726.
- 9 P01       2     4 2020-01-31 17:06:00                 729.
-10 P01       2     5 2020-01-31 20:06:00                 732.</code></pre>
+ 9 P01       2     4 2020-02-01 08:06:00                 744.
+10 P01       2     5 2020-02-01 11:06:00                 747.</code></pre>
 </div>
+</div>
+</section>
+<section id="step-2-identify-burst-boundaries-per-participant" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-identify-burst-boundaries-per-participant">Step 2 — Identify burst boundaries per participant</h3>
+<p>We determine the first and last observation of each burst.</p>
+<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#adjust gaps between waves:#</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 1) Get per-person wave boundaries (first/last Date_Time per wave)</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>pp_bounds <span class="ot">&lt;-</span> df_long <span class="sc">%&gt;%</span></span>
@@ -614,6 +668,12 @@ window.Quarto = {
 6 P06   2020-01-01 08:08:00 2020-01-31 08:14:00 2020-03-01 08:20:00
 # ℹ 3 more variables: W1_W_last &lt;dttm&gt;, W2_W_last &lt;dttm&gt;, W3_W_last &lt;dttm&gt;</code></pre>
 </div>
+</div>
+</section>
+<section id="step-3-compress-gaps-between-bursts" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-compress-gaps-between-bursts">Step 3 — Compress gaps between bursts</h3>
+<p>Large inter-burst gaps are replaced with a fixed interval (24 hours here).</p>
+<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2) Join bounds back to each row, compute adjusted seconds</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>df_adj <span class="ot">&lt;-</span> df_time <span class="sc">%&gt;%</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(pp_bounds, <span class="at">by =</span> <span class="st">"UUID"</span>) <span class="sc">%&gt;%</span></span>
@@ -647,16 +707,27 @@ window.Quarto = {
  1 P01   2020-01-01 08:03:00     1     1                   0            0
  2 P01   2020-01-01 11:03:00     1     2                   3            3
  3 P01   2020-01-01 14:03:00     1     3                   6            6
- 4 P01   2020-01-01 17:03:00     1     4                   9            9
- 5 P01   2020-01-01 20:03:00     1     5                  12           12
- 6 P01   2020-01-31 08:06:00     2     1                 720.          36
- 7 P01   2020-01-31 11:06:00     2     2                 723.          39
- 8 P01   2020-01-31 14:06:00     2     3                 726.          42
- 9 P01   2020-01-31 17:06:00     2     4                 729.          45
-10 P01   2020-01-31 20:06:00     2     5                 732.          48
-11 P01   2020-03-01 08:00:00     3     1                1440.          72
-12 P01   2020-03-01 11:00:00     3     2                1443.          75</code></pre>
+ 4 P01   2020-01-02 08:03:00     1     4                  24           24
+ 5 P01   2020-01-02 11:03:00     1     5                  27           27
+ 6 P01   2020-01-31 08:06:00     2     1                 720.          51
+ 7 P01   2020-01-31 11:06:00     2     2                 723.          54
+ 8 P01   2020-01-31 14:06:00     2     3                 726.          57
+ 9 P01   2020-02-01 08:06:00     2     4                 744.          75
+10 P01   2020-02-01 11:06:00     2     5                 747.          78
+11 P01   2020-03-01 08:00:00     3     1                1440.         102
+12 P01   2020-03-01 11:00:00     3     2                1443.         105</code></pre>
 </div>
+</div>
+</section>
+<section id="final-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="final-dataset">Final dataset</h3>
+<p>The resulting dataset:</p>
+<ul>
+<li><p>preserves within-burst timing</p></li>
+<li><p>removes large inter-burst gaps</p></li>
+<li><p>is ready for DSEM estimation in Mplus.</p></li>
+</ul>
+<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>adjusted_df <span class="ot">&lt;-</span> df_adj <span class="sc">%&gt;%</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># example: keep ID, wave, adjusted time, and wave-specific outcomes</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
@@ -668,7 +739,7 @@ window.Quarto = {
 <span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># drop rows where ALL outcome columns are NA</span></span>
 <span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">if_any</span>(<span class="fu">starts_with</span>(<span class="st">"confidence_"</span>) <span class="sc">|</span> <span class="fu">starts_with</span>(<span class="st">"depression_"</span>), <span class="sc">~</span> <span class="sc">!</span><span class="fu">is.na</span>(.x)))</span>
 <span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>adjusted_df </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(adjusted_df,<span class="at">n=</span><span class="dv">20</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 90 × 10
    UUID  Date_Time               t tinterval_h confidence_W1 confidence_W2
@@ -676,20 +747,31 @@ window.Quarto = {
  1 P01   2020-01-01 08:03:00     1           0          1.88         NA   
  2 P01   2020-01-01 11:03:00     2           3          2.57         NA   
  3 P01   2020-01-01 14:03:00     3           6          2.56         NA   
- 4 P01   2020-01-01 17:03:00     4           9          2.47         NA   
- 5 P01   2020-01-01 20:03:00     5          12          3            NA   
- 6 P01   2020-01-31 08:06:00     1          36         NA             2.39
- 7 P01   2020-01-31 11:06:00     2          39         NA             3.45
- 8 P01   2020-01-31 14:06:00     3          42         NA             2.11
- 9 P01   2020-01-31 17:06:00     4          45         NA             2.92
-10 P01   2020-01-31 20:06:00     5          48         NA             3.4 
-# ℹ 80 more rows
+ 4 P01   2020-01-02 08:03:00     4          24          2.47         NA   
+ 5 P01   2020-01-02 11:03:00     5          27          3            NA   
+ 6 P01   2020-01-31 08:06:00     1          51         NA             2.39
+ 7 P01   2020-01-31 11:06:00     2          54         NA             3.45
+ 8 P01   2020-01-31 14:06:00     3          57         NA             2.11
+ 9 P01   2020-02-01 08:06:00     4          75         NA             2.92
+10 P01   2020-02-01 11:06:00     5          78         NA             3.4 
+11 P01   2020-03-01 08:00:00     1         102         NA            NA   
+12 P01   2020-03-01 11:00:00     2         105         NA            NA   
+13 P01   2020-03-01 14:00:00     3         108         NA            NA   
+14 P01   2020-03-02 08:00:00     4         126         NA            NA   
+15 P01   2020-03-02 11:00:00     5         129         NA            NA   
+16 P02   2020-01-01 08:01:00     1           0          2.25         NA   
+17 P02   2020-01-01 11:01:00     2           3          1.77         NA   
+18 P02   2020-01-01 14:01:00     3           6          2.84         NA   
+19 P02   2020-01-02 08:01:00     4          24          2.61         NA   
+20 P02   2020-01-02 11:01:00     5          27          2.37         NA   
+# ℹ 70 more rows
 # ℹ 4 more variables: confidence_W3 &lt;dbl&gt;, depression_W1 &lt;dbl&gt;,
 #   depression_W2 &lt;dbl&gt;, depression_W3 &lt;dbl&gt;</code></pre>
 </div>
 </div>
 
 
+</section>
 </section>
 </section>
 
@@ -780,7 +862,7 @@ window.Quarto = {
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/piaandresen\.github\.io\/Dynamic-Measurement-Burst-Models\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
