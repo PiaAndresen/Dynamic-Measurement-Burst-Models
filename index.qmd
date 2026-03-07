@@ -14,7 +14,11 @@ author:
 
 ## Welcome
 
-This website is a supplement to "The Dynamic Measurement-Burst Model: A method for assessing psychological process features at multiple timescales." by Andresen, Schuurman and Hamaker (in prep). Please cite us when suing this method.
+This website is a supplement to "The Dynamic Measurement-Burst Model: A method for assessing psychological process features at multiple timescales." by Andresen, Schuurman and Hamaker (under review). Please cite us when using this method.
+
+All models presented on this website were tested using the empirical example presented in Andresen et al (in prep.). [Mplus output files can be found here](https://github.com/PiaAndresen/Dynamic-Measurement-Burst-Models/tree/main/EmpiricalResults%3A).
+
+Please note that we do not possess ownership of the data. Researchers wishing to obtain data for further investigation or as part of this tutorial are obliged to request the data from the [Emote Database](https://emotedatabase.com/datasets/?page=2).
 
 This website contains Mplus syntax for v.8.11, to specify dynamic measurement burst models (DMBM), an approach integrating the multilevel first order autoregressive model (ML-AR(1)M) and the random intercept cross-lagged panel model (RI-CLPM) to assess stability and change in psychological processes at the micro- meso and macro-level.
 
@@ -26,7 +30,3 @@ On this website, we provide a simple tutorial for running these models in Mplus.
 4.  Mplus syntax of the DMBM for assessing micro- and meso-level dynamics and macro-level stability
 
 Use the sidebar to navigate this website.
-
-All models presented on this website were tested using the empirical example presented in Andresen et al (in prep.). [Mplus output files can be found here](https://github.com/PiaAndresen/Dynamic-Measurement-Burst-Models/tree/main/EmpiricalResults%3A).
-
-Please note that we do not possess ownership of the data. Researchers wishing to obtain data for further investigation or as part of this tutorial are obliged to request the data for the [Emote Database](https://emotedatabase.com/datasets/?page=2).
