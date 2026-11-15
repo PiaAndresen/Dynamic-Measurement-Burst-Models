@@ -13,7 +13,7 @@ We can specify the DMBM in four steps.
 
 1.  Specify the *within* part, where we specify the micro-level model for each burst separately. Per burst, we specify autoregressive parameters `A1, A2, A3,...; A_Burst`. Optionally, we can additionally specify the random residual variances (`C1, C2, C3...;`) per burst, which can then be further modeled as the log residual variance (i.e., the compound of reactivity and exposure to shocks) at the `%BETWEEN%` level.
 
-2.  Specify the *between* part, where the random intercepts are specified. It is specified using the `BY` command, `RI_Y BY Y1@1 Y2@1 Y#@1...;`, where `@1` fixes the factor loading to one. This process is repeated for every process feature modeled at the meso- and macro-level. Furthermore, for each feature at each burst, we define the burst- and person-specific deviations from the person's random intercept (i.e., the within-person components *WC*). For example, for the mean at burst 1, we write: `WCY1 BY Y1; Y1@0.001;` which defines the within-person component for the mean and fixes the prior for residual variance of the observed mean `Y1` to (almost) zero.
+2.  Specify the *between* part, where the random intercepts are specified. It is specified using the `BY` command, `RI_Y BY Y1@1 Y2@1 Y#@1...;`, where `@1` fixes the factor loading to one. This process is repeated for every process feature modeled at the meso- and macro-level. Furthermore, for each feature at each burst, we define the burst- and person-specific deviations from the person's random intercept (i.e., the within-person components *WC*). For example, for the mean at burst 1, we write: `WCY1 BY Y1; Y1@0.001;` which defines the within-person component for the mean and fixes the residual variance of the observed mean `Y1` to (almost) zero.
 
 3.  Specify the *meso-level dynamics* between burst- and person-specific deviations from the person's random intercept of that feature at each burst, using `WCY2 WCY3 ON WCY1 WCY2; ...`, to define autoregressive effects, and `WCY2 WCY3 ON WCA1 WCA2;...` to define cross-lagged effects, in this example of the mean regressed on `WCA1`.
 
@@ -44,7 +44,7 @@ VARIABLE: NAMES = ID hour Y1 Y2 Y3;
 
           LAGGED = Y1(1) Y2(1) Y3(1);
 
-          TINTECAL = hour(1);
+          TINTERVAL = hour(1);
           MISSING = ALL(999);
 
 ANALYSIS:
